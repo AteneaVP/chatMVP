@@ -1,1175 +1,1397 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ChatMVP</title>
-  <meta name="theme-color" content="#101827">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#6c5ce7">
+<title>Conecta — Mensajería</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #0b1120;
-      --panel: #141e30;
-      --panel2: #1d2a40;
-      --border: #304059;
-      --text: #f3f6ff;
-      --muted: #a9b5ca;
-      --primary: #7182ff;
-      --danger: #ff777f;
-      --success: #45d6a0;
-    }
+<style>
+:root {
+  --primary: #6c5ce7;
+  --primary-dark: #5746d8;
+  --background: #f5f6fb;
+  --text: #20263a;
+  --muted: #8b92a5;
+  --border: #eceef5;
+  --white: #ffffff;
+  --green: #25bd91;
+}
 
-    * { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--text);
-      font: 15px Arial, sans-serif;
-    }
+body {
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  background: var(--background);
+  color: var(--text);
+  height: 100vh;
+  height: 100dvh;
+}
 
-    button, input { font: inherit; }
+button, input, textarea {
+  font: inherit;
+}
 
-    button {
-      border: 0;
-      border-radius: 9px;
-      padding: 11px 14px;
-      background: var(--primary);
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
+button {
+  cursor: pointer;
+}
 
-    button:hover { filter: brightness(1.1); }
-    button:disabled { opacity: .55; cursor: not-allowed; }
+.app {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  background: var(--white);
+}
 
-    input {
-      width: 100%;
-      min-width: 0;
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      outline: none;
-      background: #0b1424;
-      color: var(--text);
-    }
+/* PANEL LATERAL */
 
-    input:focus { border-color: var(--primary); }
-    .hidden { display: none !important; }
-    .muted { color: var(--muted); font-size: 13px; }
-    .status { font-size: 13px; overflow-wrap: anywhere; margin-top: 10px; }
-    .error { color: var(--danger); }
-    .success { color: var(--success); }
+.sidebar {
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 23px 17px;
+}
 
-    .auth-screen {
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 20px;
-    }
+.brand {
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  padding: 5px 7px 25px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
 
-    .auth-card {
-      width: 100%;
-      max-width: 420px;
-      padding: 28px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: 0 18px 65px #0005;
-    }
+.brand-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--primary);
+  color: white;
+}
 
-    h1 { margin-top: 0; }
-    .logo span { color: var(--primary); }
-    .auth-card p { color: var(--muted); line-height: 1.5; }
-    .field { margin: 16px 0; }
-    .field label {
-      display: block;
-      margin-bottom: 7px;
-      color: var(--muted);
-      font-size: 13px;
-    }
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: #f8f8fc;
+  border-radius: 14px;
+  margin-bottom: 26px;
+}
 
-    .full { width: 100%; }
-    .secondary { background: var(--panel2); border: 1px solid var(--border); }
+.avatar {
+  width: 43px;
+  height: 43px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #e8e4ff;
+  color: #5d4bd5;
+  font-weight: 750;
+}
 
-    .app {
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: 320px minmax(0, 1fr);
-    }
+.profile-info {
+  flex: 1;
+  min-width: 0;
+}
 
-    aside {
-      padding: 18px;
-      background: var(--panel);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      min-width: 0;
-    }
+.profile-info strong,
+.profile-info small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-    .side-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
+.profile-info strong {
+  font-size: 13px;
+}
 
-    .side-header h1 { font-size: 23px; margin: 0; }
-    .profile {
-      background: var(--panel2);
-      border-radius: 10px;
-      padding: 13px;
-      overflow-wrap: anywhere;
-    }
+.profile-info small {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
 
-    .section-title {
-      margin: 0 0 10px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .7px;
-      font-size: 12px;
-    }
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 1.2px;
+  color: var(--muted);
+  margin: 0 7px 13px;
+}
 
-    .search-row { display: flex; gap: 7px; }
-    .search-row button { flex-shrink: 0; }
+.icon-button {
+  width: 35px;
+  height: 35px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 22px;
+}
 
-    .list { display: flex; flex-direction: column; gap: 8px; }
-    .item {
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #0b1424;
-      overflow-wrap: anywhere;
-    }
+.icon-button:hover {
+  background: #efedff;
+  color: var(--primary);
+}
 
-    .item strong { display: block; margin-bottom: 8px; }
-    .actions { display: flex; flex-wrap: wrap; gap: 7px; }
-    .actions button { padding: 8px 10px; font-size: 12px; }
+.search {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: #fbfbfe;
+  padding: 12px;
+  outline: none;
+  font-size: 12px;
+  margin-bottom: 13px;
+}
 
-    .chat {
-      height: 100vh;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-    }
+.search:focus,
+.field:focus {
+  border-color: #a49af5;
+}
 
-    .chat-header {
-      padding: 20px;
-      background: #101a2b;
-      border-bottom: 1px solid var(--border);
-    }
+.contacts {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
 
-    .chat-header h2 { font-size: 19px; margin: 0 0 6px; }
-    .chat-header p { margin: 0; color: var(--muted); font-size: 13px; }
+.contact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 9px;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  text-align: left;
+}
 
-    .messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+.contact:hover,
+.contact.active {
+  background: #f1efff;
+}
 
-    .empty {
-      margin: auto;
-      max-width: 340px;
-      text-align: center;
-      color: var(--muted);
-      line-height: 1.6;
-    }
+.contact-info {
+  flex: 1;
+  min-width: 0;
+}
 
-    .bubble {
-      align-self: flex-start;
-      max-width: min(80%, 560px);
-      padding: 11px 14px;
-      background: var(--panel2);
-      border: 1px solid var(--border);
-      border-radius: 13px 13px 13px 3px;
-      overflow-wrap: anywhere;
-      white-space: pre-wrap;
-    }
+.contact-name {
+  font-size: 12px;
+  font-weight: 750;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-    .bubble.mine {
-      align-self: flex-end;
-      background: #3949a5;
-      border-color: #5363c3;
-      border-radius: 13px 13px 3px 13px;
-    }
+.contact-preview {
+  font-size: 11px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 5px;
+}
 
-    .bubble-author {
-      font-size: 11px;
-      color: #d0d7ff;
-      margin-bottom: 6px;
-    }
+.sidebar-footer {
+  padding-top: 15px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
 
-    .bubble-time {
-      margin-top: 7px;
-      text-align: right;
-      color: #d0d7e9;
-      font-size: 10px;
-    }
+.text-button {
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-size: 12px;
+  margin-top: 8px;
+}
 
-    .composer {
-      display: flex;
-      gap: 10px;
-      padding: 15px 20px;
-      border-top: 1px solid var(--border);
-      background: #101a2b;
-    }
+/* CHAT */
 
-    .composer input { flex: 1; }
+.chat {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+}
 
-    #chatStatus { padding: 0 20px 10px; }
+.chat-header {
+  height: 79px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 25px;
+  gap: 12px;
+}
 
-    @media (max-width: 760px) {
-      .app { grid-template-columns: 1fr; }
-      aside { border-right: 0; border-bottom: 1px solid var(--border); gap: 14px; }
-      .chat { height: 70vh; min-height: 420px; }
-      .bubble { max-width: 90%; }
-    }
-  </style>
+.chat-person {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-person strong {
+  font-size: 14px;
+}
+
+.chat-person small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+.status {
+  font-size: 11px;
+  color: var(--green);
+}
+
+.welcome {
+  margin: auto;
+  text-align: center;
+  padding: 30px 18px;
+}
+
+.welcome-icon {
+  width: 100px;
+  height: 100px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #9488ff, #6c5ce7);
+  color: white;
+  font-size: 47px;
+  border-radius: 30px;
+  margin: 0 auto 25px;
+  transform: rotate(-7deg);
+  box-shadow: 0 18px 45px #6c5ce733;
+}
+
+.welcome h1 {
+  font-size: clamp(24px, 3vw, 35px);
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+}
+
+.welcome p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+  margin-bottom: 23px;
+}
+
+.primary-button {
+  border: 0;
+  background: var(--primary);
+  color: white;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 13px 18px;
+  border-radius: 11px;
+}
+
+.primary-button:hover {
+  background: var(--primary-dark);
+}
+
+.messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 25px clamp(15px, 6%, 75px);
+}
+
+.date-label {
+  text-align: center;
+  font-size: 10px;
+  color: #a0a6b5;
+  letter-spacing: 1.5px;
+  margin: 3px 0 25px;
+}
+
+.message {
+  display: flex;
+  margin-bottom: 18px;
+  gap: 9px;
+  align-items: flex-end;
+}
+
+.message.mine {
+  flex-direction: row-reverse;
+}
+
+.message-avatar {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #e9e5ff;
+  color: var(--primary);
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.message-body {
+  max-width: min(75%, 520px);
+}
+
+.message-bubble {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 12px 15px;
+  font-size: 13px;
+  line-height: 1.65;
+  background: #f2f3f8;
+  border-radius: 4px 15px 15px;
+}
+
+.mine .message-bubble {
+  background: var(--primary);
+  color: white;
+  border-radius: 15px 4px 15px 15px;
+}
+
+.message-time {
+  font-size: 10px;
+  color: #a0a6b5;
+  margin-top: 5px;
+}
+
+.mine .message-time {
+  text-align: right;
+}
+
+.composer {
+  margin: 0 24px 22px;
+  padding: 9px;
+  border: 1px solid #e8eaf2;
+  border-radius: 15px;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.composer:focus-within {
+  border-color: #b5adff;
+}
+
+.composer textarea {
+  flex: 1;
+  min-width: 0;
+  max-height: 130px;
+  resize: none;
+  border: 0;
+  outline: 0;
+  padding: 10px 0;
+  font-size: 13px;
+}
+
+.send-button {
+  width: 39px;
+  height: 39px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 11px;
+  background: var(--primary);
+  color: white;
+  font-size: 19px;
+}
+
+.send-button:hover {
+  background: var(--primary-dark);
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* VENTANAS MODALES */
+
+.modal {
+  width: min(420px, calc(100% - 28px));
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: auto;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 21px;
+  color: var(--text);
+}
+
+.modal::backdrop {
+  background: #17203399;
+  backdrop-filter: blur(4px);
+}
+
+.modal h2 {
+  font-size: 25px;
+  letter-spacing: -0.7px;
+  margin: 8px 0 10px;
+}
+
+.modal-description {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 22px;
+}
+
+.close-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: -15px -15px 10px;
+}
+
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 7px;
+}
+
+.field {
+  width: 100%;
+  border: 1px solid #e5e8f0;
+  border-radius: 10px;
+  padding: 12px;
+  outline: none;
+  font-size: 13px;
+}
+
+.full-button {
+  width: 100%;
+  margin-top: 5px;
+}
+
+.form-note {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-top: 12px;
+}
+
+.toast {
+  position: fixed;
+  z-index: 10;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  max-width: calc(100% - 30px);
+  padding: 13px 18px;
+  background: #20263a;
+  color: white;
+  border-radius: 11px;
+  font-size: 12px;
+  box-shadow: 0 8px 35px #0002;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    padding: 18px 15px;
+  }
+
+  .chat {
+    display: none;
+  }
+
+  .app.chat-open .sidebar {
+    display: none;
+  }
+
+  .app.chat-open .chat {
+    display: flex;
+    height: 100%;
+  }
+
+  .chat-header {
+    height: 70px;
+    padding: 0 12px;
+    gap: 9px;
+  }
+
+  .back-button {
+    display: block !important;
+  }
+
+  .messages {
+    padding: 18px 12px;
+  }
+
+  .message-body {
+    max-width: 86%;
+  }
+
+  .composer {
+    margin: 0 10px 12px;
+    gap: 7px;
+  }
+
+  .welcome h1 {
+    font-size: 27px;
+  }
+
+  .sidebar-footer {
+    padding-bottom: 5px;
+  }
+}
+
+@media (min-width: 701px) {
+  .back-button {
+    display: none;
+  }
+}
+</style>
 </head>
 
 <body>
+<div class="app" id="app">
 
-  <section id="authScreen" class="auth-screen">
-    <div class="auth-card">
-      <h1 class="logo">Chat<span>MVP</span></h1>
-      <p>Conecta con tus amigos y conversa en tiempo real.</p>
-
-      <div class="field">
-        <label for="email">Correo electrónico</label>
-        <input id="email" type="email" autocomplete="email"
-               placeholder="tu@correo.com">
-      </div>
-
-      <div class="field">
-        <label for="password">Contraseña</label>
-        <input id="password" type="password"
-               autocomplete="current-password"
-               placeholder="Mínimo 6 caracteres">
-      </div>
-
-      <div id="usernameField" class="field hidden">
-        <label for="username">Nombre de usuario</label>
-        <input id="username" autocomplete="username"
-               maxlength="24" placeholder="usuario123">
-      </div>
-
-      <button id="loginBtn" class="full">Iniciar sesión</button>
-      <button id="registerBtn" class="full secondary" style="margin-top:10px">
-        Crear cuenta
-      </button>
-
-      <div id="authStatus" class="status" role="status" aria-live="polite"></div>
-
-      <p class="muted">
-        Si te registras y se solicita confirmar tu correo, confirma el email
-        antes de iniciar sesión.
-      </p>
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-icon">✳</span>
+      conecta
     </div>
-  </section>
 
-  <main id="appScreen" class="app hidden">
-    <aside>
-      <div class="side-header">
-        <h1 class="logo">Chat<span>MVP</span></h1>
-        <button id="logoutBtn" class="secondary">Salir</button>
+    <div class="profile">
+      <div class="avatar" id="myAvatar">T</div>
+      <div class="profile-info">
+        <strong id="myName">Tu cuenta</strong>
+        <small id="connectionStatus">Modo demostración</small>
       </div>
+      <button class="icon-button" id="accountButton" title="Cuenta">⋯</button>
+    </div>
 
-      <div class="profile">
-        <div class="muted">Tu cuenta</div>
-        <strong id="myUsername">Cargando...</strong>
-        <div id="myEmail" class="muted"></div>
+    <div class="section-title">
+      <span>MENSAJES</span>
+      <button class="icon-button" id="newChatButton" title="Nueva conversación">＋</button>
+    </div>
+
+    <input
+      class="search"
+      id="searchInput"
+      placeholder="Buscar conversación..."
+      aria-label="Buscar conversación"
+    >
+
+    <div class="contacts" id="contacts"></div>
+
+    <div class="sidebar-footer">
+      <div>♢ Un espacio para estar cerca.</div>
+      <button class="text-button hidden" id="logoutButton">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="chat">
+
+    <header class="chat-header">
+      <button class="icon-button back-button" id="backButton" aria-label="Volver">←</button>
+      <div class="avatar" id="activeAvatar">✳</div>
+      <div class="chat-person">
+        <strong id="activeName">Bienvenido a Conecta</strong>
+        <small id="activeStatus">Tus conversaciones, en un solo lugar</small>
       </div>
+      <div class="status" id="onlineStatus">●</div>
+    </header>
 
-      <section>
-        <h3 class="section-title">Buscar amigos</h3>
-        <div class="search-row">
-          <input id="searchInput" placeholder="Nombre de usuario" maxlength="24">
-          <button id="searchBtn">Buscar</button>
-        </div>
-        <div id="searchStatus" class="status" role="status"></div>
-        <div id="searchResults" class="list"></div>
-      </section>
-
-      <section>
-        <h3 class="section-title">Solicitudes recibidas</h3>
-        <div id="requestsList" class="list">
-          <div class="muted">Cargando...</div>
-        </div>
-      </section>
-
-      <section>
-        <h3 class="section-title">Amigos</h3>
-        <div id="friendsList" class="list">
-          <div class="muted">Cargando...</div>
-        </div>
-      </section>
-    </aside>
-
-    <section class="chat">
-      <header class="chat-header">
-        <h2 id="chatTitle">Tus conversaciones</h2>
-        <p id="chatSubtitle">Selecciona un amigo para empezar a hablar.</p>
-      </header>
-
-      <div id="messages" class="messages">
-        <div class="empty">
-          <h3>¡Bienvenido a ChatMVP!</h3>
-          <p>Busca usuarios, añade amigos y empieza a conversar.</p>
-        </div>
-      </div>
-
-      <form id="messageForm" class="composer">
-        <input id="messageInput" maxlength="4000"
-               placeholder="Escribe un mensaje..." autocomplete="off" disabled>
-        <button id="sendBtn" disabled>Enviar</button>
-      </form>
-      <div id="chatStatus" class="status" role="status" aria-live="polite"></div>
+    <section class="welcome" id="welcome">
+      <div class="welcome-icon">✳</div>
+      <h1>Las buenas conversaciones<br>lo cambian todo.</h1>
+      <p>Elige una conversación o empieza a hablar<br>con alguien nuevo.</p>
+      <button class="primary-button" id="welcomeNewChat">＋ Nueva conversación</button>
     </section>
+
+    <section class="messages hidden" id="messages">
+      <div class="date-label">CONVERSACIÓN</div>
+      <div id="messageList"></div>
+    </section>
+
+    <form class="composer hidden" id="messageForm">
+      <textarea
+        id="messageInput"
+        rows="1"
+        maxlength="4000"
+        placeholder="Escribe un mensaje..."
+        aria-label="Escribe un mensaje"
+      ></textarea>
+      <button class="send-button" type="submit" aria-label="Enviar">➤</button>
+    </form>
+
   </main>
+</div>
 
-  <script>
-    "use strict";
+<!-- INICIO DE SESIÓN -->
 
-    // ==============================================
-    // CONFIGURACIÓN DE TU PROYECTO SUPABASE
-    // ==============================================
-    const SUPABASE_URL = "https://kiubittekiloevifxrgj.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_KEmE5HMZCd9oVfjMHiAgLA_VLHXE-PX";
+<dialog class="modal" id="authModal">
+  <form method="dialog" class="close-row">
+    <button class="icon-button" aria-label="Cerrar">×</button>
+  </form>
 
-    let db = null;
-    let currentUser = null;
-    let currentProfile = null;
-    let activeConversationId = null;
-    let activeFriendId = null;
-    let activeFriendUsername = "";
-    let messagesChannel = null;
-    let requestsChannel = null;
-    let busyLoadingMessages = false;
+  <h2>Bienvenido a Conecta</h2>
+  <p class="modal-description">
+    Inicia sesión o crea una cuenta para comenzar a conversar.
+  </p>
 
-    const $ = id => document.getElementById(id);
+  <form id="authForm">
+    <div class="form-group">
+      <label for="authName">Nombre</label>
+      <input class="field" id="authName" placeholder="Tu nombre" maxlength="60">
+    </div>
 
-    function status(id, message = "", type = "") {
-      const el = $(id);
-      el.textContent = message;
-      el.className = "status" + (type ? " " + type : "");
+    <div class="form-group">
+      <label for="authEmail">Correo electrónico</label>
+      <input class="field" id="authEmail" type="email" required placeholder="tu@correo.com">
+    </div>
+
+    <div class="form-group">
+      <label for="authPassword">Contraseña</label>
+      <input class="field" id="authPassword" type="password" required minlength="6" placeholder="Mínimo 6 caracteres">
+    </div>
+
+    <button class="primary-button full-button" id="authSubmit" type="submit">
+      Entrar o crear cuenta
+    </button>
+
+    <p class="form-note">
+      Si necesitas registrarte, se creará una cuenta nueva. Puede que debas confirmar el correo.
+    </p>
+  </form>
+</dialog>
+
+<!-- NUEVA CONVERSACIÓN -->
+
+<dialog class="modal" id="newChatModal">
+  <form method="dialog" class="close-row">
+    <button class="icon-button" aria-label="Cerrar">×</button>
+  </form>
+
+  <h2>Nueva conversación</h2>
+  <p class="modal-description">
+    Introduce el correo electrónico de la persona con la que quieres hablar.
+  </p>
+
+  <form id="newChatForm">
+    <div class="form-group">
+      <label for="contactEmail">Correo electrónico</label>
+      <input class="field" id="contactEmail" type="email" required placeholder="persona@correo.com">
+    </div>
+
+    <button class="primary-button full-button" type="submit">
+      Empezar a conversar
+    </button>
+
+    <p class="form-note" id="newChatNote">
+      La otra persona debe tener una cuenta registrada.
+    </p>
+  </form>
+</dialog>
+
+<div class="toast hidden" id="toast" role="status"></div>
+
+<script>
+/*
+  CONFIGURACIÓN DE SUPABASE
+
+  1. Crea un proyecto en https://supabase.com
+  2. En Project Settings > API, copia la URL y la clave pública.
+  3. Pega los valores aquí.
+  4. Ejecuta el SQL que aparece en las instrucciones debajo del código.
+
+  No utilices la clave secreta service_role en una página web.
+*/
+
+const SUPABASE_URL = "https://kfcembynobnfyrfjcngu.supabase.co/rest/v1/";
+const SUPABASE_ANON_KEY = "kfcembynobnfyrfjcngu";
+
+const hasSupabase = Boolean(
+  SUPABASE_URL &&
+  SUPABASE_ANON_KEY &&
+  window.supabase
+);
+
+const db = hasSupabase
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+const $ = id => document.getElementById(id);
+
+let user = null;
+let conversations = [];
+let activeConversation = null;
+let messages = [];
+let realtimeChannel = null;
+let toastTimeout = null;
+
+const demoContacts = [
+  {
+    id: "demo-ana",
+    name: "Ana Martínez",
+    avatar: "AM",
+    preview: "¡Qué ganas de verte! ✨"
+  },
+  {
+    id: "demo-marcos",
+    name: "Marcos Ruiz",
+    avatar: "MR",
+    preview: "Te paso el enlace luego"
+  },
+  {
+    id: "demo-laura",
+    name: "Laura Gómez",
+    avatar: "LG",
+    preview: "Jajaja, totalmente 😂"
+  }
+];
+
+const demoMessages = {
+  "demo-ana": [
+    {
+      sender_id: "demo-ana",
+      content: "¡Hola! ¿Cómo va tu semana?",
+      created_at: new Date(Date.now() - 300000).toISOString()
+    },
+    {
+      sender_id: "demo-me",
+      content: "¡Muy bien! Con ganas de que llegue el finde 😊",
+      created_at: new Date(Date.now() - 180000).toISOString()
+    },
+    {
+      sender_id: "demo-ana",
+      content: "¡Qué ganas de verte! ✨",
+      created_at: new Date(Date.now() - 60000).toISOString()
+    }
+  ],
+  "demo-marcos": [
+    {
+      sender_id: "demo-marcos",
+      content: "He encontrado algo que te puede interesar.",
+      created_at: new Date(Date.now() - 500000).toISOString()
+    },
+    {
+      sender_id: "demo-me",
+      content: "¡Genial! Pásamelo cuando puedas.",
+      created_at: new Date(Date.now() - 300000).toISOString()
+    }
+  ],
+  "demo-laura": [
+    {
+      sender_id: "demo-laura",
+      content: "No me puedo creer lo de ayer 😂",
+      created_at: new Date(Date.now() - 200000).toISOString()
+    },
+    {
+      sender_id: "demo-me",
+      content: "¡Todavía me estoy riendo!",
+      created_at: new Date(Date.now() - 100000).toISOString()
+    }
+  ]
+};
+
+function escapeHTML(value = "") {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+function initials(name = "?") {
+  return name.trim().split(/\s+/).slice(0, 2)
+    .map(part => part[0] || "")
+    .join("").toUpperCase();
+}
+
+function formatTime(date) {
+  return new Date(date).toLocaleTimeString("es-ES", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function toast(text) {
+  const el = $("toast");
+  el.textContent = text;
+  el.classList.remove("hidden");
+
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => el.classList.add("hidden"), 3200);
+}
+
+function setProfile(name, email) {
+  $("myName").textContent = name || email || "Tu cuenta";
+  $("myAvatar").textContent = initials(name || email || "T");
+}
+
+function updateMode() {
+  $("connectionStatus").textContent = db
+    ? (user ? "Conectado a Supabase" : "Inicia sesión")
+    : "Modo demostración";
+
+  $("logoutButton").classList.toggle("hidden", !user);
+}
+
+function showChatLayout() {
+  $("app").classList.add("chat-open");
+}
+
+function showContactLayout() {
+  $("app").classList.remove("chat-open");
+}
+
+function renderContacts(filter = "") {
+  const container = $("contacts");
+  container.innerHTML = "";
+
+  const filtered = conversations.filter(contact =>
+    contact.name.toLowerCase().includes(filter.toLowerCase()) ||
+    (contact.email || "").toLowerCase().includes(filter.toLowerCase())
+  );
+
+  if (!filtered.length) {
+    container.innerHTML = `
+      <p style="padding:15px;color:#8b92a5;font-size:12px;line-height:1.7">
+        No hay conversaciones.<br>
+        Pulsa ＋ para empezar una nueva.
+      </p>`;
+    return;
+  }
+
+  filtered.forEach(contact => {
+    const button = document.createElement("button");
+
+    button.className = "contact" +
+      (activeConversation?.id === contact.id ? " active" : "");
+
+    button.innerHTML = `
+      <div class="avatar">${escapeHTML(contact.avatar || initials(contact.name))}</div>
+      <div class="contact-info">
+        <div class="contact-name">${escapeHTML(contact.name)}</div>
+        <div class="contact-preview">${escapeHTML(contact.preview || "Nueva conversación")}</div>
+      </div>
+    `;
+
+    button.addEventListener("click", () => selectConversation(contact));
+    container.appendChild(button);
+  });
+}
+
+function selectConversation(contact) {
+  activeConversation = contact;
+
+  $("welcome").classList.add("hidden");
+  $("messages").classList.remove("hidden");
+  $("messageForm").classList.remove("hidden");
+
+  $("activeName").textContent = contact.name;
+  $("activeStatus").textContent = db
+    ? "Mensajes sincronizados"
+    : "Modo demostración";
+
+  $("activeAvatar").textContent = contact.avatar || initials(contact.name);
+
+  if (!db && contact.id.startsWith("demo-")) {
+    messages = [...(demoMessages[contact.id] || [])];
+    renderMessages();
+  } else {
+    messages = [];
+    renderMessages();
+
+    if (db && user) {
+      loadMessages(contact.id);
+    }
+  }
+
+  renderContacts($("searchInput").value);
+  showChatLayout();
+}
+
+function renderMessages() {
+  const container = $("messageList");
+  container.innerHTML = "";
+
+  messages.forEach(message => {
+    const mine = message.sender_id === (user?.id || "demo-me");
+
+    const row = document.createElement("div");
+    row.className = "message" + (mine ? " mine" : "");
+
+    row.innerHTML = `
+      <div class="message-avatar">
+        ${mine
+          ? escapeHTML(initials(user?.user_metadata?.full_name || "T"))
+          : escapeHTML(activeConversation?.avatar || "?")}
+      </div>
+      <div class="message-body">
+        <div class="message-bubble">${escapeHTML(message.content)}</div>
+        <div class="message-time">${formatTime(message.created_at)}</div>
+      </div>
+    `;
+
+    container.appendChild(row);
+  });
+
+  $("messages").scrollTop = $("messages").scrollHeight;
+}
+
+function startDemo() {
+  user = null;
+  conversations = demoContacts.map(contact => ({ ...contact }));
+  activeConversation = null;
+
+  setProfile("Tu cuenta", "");
+  updateMode();
+  renderContacts();
+
+  $("welcome").classList.remove("hidden");
+  $("messages").classList.add("hidden");
+  $("messageForm").classList.add("hidden");
+}
+
+async function initialize() {
+  if (!db) {
+    startDemo();
+    return;
+  }
+
+  try {
+    const { data, error } = await db.auth.getSession();
+    if (error) throw error;
+
+    if (data.session) {
+      user = data.session.user;
+      await loadConversations();
+    } else {
+      startDemo();
+      $("connectionStatus").textContent = "Inicia sesión";
     }
 
-    function element(tag, className = "", text = "") {
-      const el = document.createElement(tag);
-      if (className) el.className = className;
-      el.textContent = text;
-      return el;
+    db.auth.onAuthStateChange(async (_event, session) => {
+      user = session?.user || null;
+
+      if (user) {
+        await loadConversations();
+      } else {
+        startDemo();
+      }
+
+      updateMode();
+    });
+  } catch (error) {
+    console.error(error);
+    toast("No se pudo conectar con Supabase.");
+    startDemo();
+  }
+}
+
+async function loadConversations() {
+  if (!db || !user) return;
+
+  setProfile(
+    user.user_metadata?.full_name || user.email,
+    user.email
+  );
+
+  updateMode();
+
+  try {
+    const { data: profile } = await db
+      .from("profiles")
+      .select("display_name,email")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile) {
+      setProfile(profile.display_name || profile.email, profile.email);
     }
 
-    function clear(el) {
-      el.replaceChildren();
-    }
+    const { data: memberships, error } = await db
+      .from("conversation_members")
+      .select("conversation_id")
+      .eq("user_id", user.id);
 
-    function errorText(error) {
-      console.error(error);
-      return error?.message || "Ha ocurrido un error inesperado.";
-    }
+    if (error) throw error;
 
-    function showAuth() {
-      $("authScreen").classList.remove("hidden");
-      $("appScreen").classList.add("hidden");
-    }
+    const result = [];
 
-    function showApp() {
-      $("authScreen").classList.add("hidden");
-      $("appScreen").classList.remove("hidden");
-    }
+    for (const membership of memberships || []) {
+      const id = membership.conversation_id;
 
-    function formatTime(value) {
-      if (!value) return "";
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return "";
-      return date.toLocaleString([], {
-        day: "2-digit",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit"
+      const { data: members, error: membersError } = await db
+        .from("conversation_members")
+        .select("user_id, profiles(id,display_name,email)")
+        .eq("conversation_id", id)
+        .neq("user_id", user.id);
+
+      if (membersError) throw membersError;
+
+      const other = members?.[0]?.profiles;
+      if (!other) continue;
+
+      const { data: lastMessage } = await db
+        .from("messages")
+        .select("content,created_at")
+        .eq("conversation_id", id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      result.push({
+        id,
+        name: other.display_name || other.email,
+        email: other.email,
+        avatar: initials(other.display_name || other.email),
+        preview: lastMessage?.content || "Nueva conversación"
       });
     }
 
-    function validUsername(name) {
-      return /^[a-zA-Z0-9_]{3,24}$/.test(name);
+    conversations = result;
+    renderContacts($("searchInput").value);
+
+    if (!result.length) {
+      activeConversation = null;
+      $("welcome").classList.remove("hidden");
+      $("messages").classList.add("hidden");
+      $("messageForm").classList.add("hidden");
+    }
+  } catch (error) {
+    console.error(error);
+    toast("Error cargando conversaciones. Comprueba las tablas y RLS.");
+  }
+}
+
+async function loadMessages(conversationId) {
+  try {
+    if (realtimeChannel) {
+      await db.removeChannel(realtimeChannel);
+      realtimeChannel = null;
     }
 
-    // ==============================================
-    // ARRANQUE
-    // ==============================================
-    async function init() {
-      if (!window.supabase || !window.supabase.createClient) {
-        status(
-          "authStatus",
-          "No se ha cargado Supabase. Comprueba tu conexión y vuelve a cargar la página.",
-          "error"
-        );
-        return;
-      }
+    const { data, error } = await db
+      .from("messages")
+      .select("id,conversation_id,sender_id,content,created_at")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true })
+      .limit(300);
 
-      try {
-        db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    if (error) throw error;
 
-        const { data, error } = await db.auth.getSession();
-        if (error) throw error;
+    messages = data || [];
+    renderMessages();
 
-        if (data.session?.user) {
-          currentUser = data.session.user;
-          await enterApp();
-        }
-
-        db.auth.onAuthStateChange((event) => {
-          if (event === "SIGNED_OUT") {
-            setTimeout(() => {
-              cleanupRealtime();
-              resetState();
-              showAuth();
-            }, 0);
+    realtimeChannel = db
+      .channel("chat-" + conversationId)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: "conversation_id=eq." + conversationId
+        },
+        payload => {
+          if (!messages.some(m => m.id === payload.new.id)) {
+            messages.push(payload.new);
+            renderMessages();
           }
-        });
-      } catch (error) {
-        status("authStatus", errorText(error), "error");
+
+          const contact = conversations.find(c => c.id === conversationId);
+
+          if (contact) {
+            contact.preview = payload.new.content;
+            renderContacts($("searchInput").value);
+          }
+        }
+      )
+      .subscribe();
+  } catch (error) {
+    console.error(error);
+    toast("No se pudieron cargar los mensajes.");
+  }
+}
+
+async function sendMessage(content) {
+  if (!activeConversation) return;
+
+  if (!db || activeConversation.id.startsWith("demo-")) {
+    const message = {
+      id: "demo-" + Date.now(),
+      sender_id: "demo-me",
+      content,
+      created_at: new Date().toISOString()
+    };
+
+    messages.push(message);
+    renderMessages();
+
+    activeConversation.preview = content;
+    renderContacts($("searchInput").value);
+    return;
+  }
+
+  const { error } = await db.from("messages").insert({
+    conversation_id: activeConversation.id,
+    sender_id: user.id,
+    content
+  });
+
+  if (error) {
+    console.error(error);
+    toast("No se pudo enviar el mensaje.");
+    return;
+  }
+
+  activeConversation.preview = content;
+  renderContacts($("searchInput").value);
+}
+
+async function authenticate(event) {
+  event.preventDefault();
+
+  if (!db) {
+    toast("Configura Supabase en el código para iniciar sesión.");
+    return;
+  }
+
+  const email = $("authEmail").value.trim().toLowerCase();
+  const password = $("authPassword").value;
+  const name = $("authName").value.trim();
+
+  $("authSubmit").disabled = true;
+
+  try {
+    let result = await db.auth.signInWithPassword({ email, password });
+
+    if (result.error && /Invalid login credentials/i.test(result.error.message)) {
+      result = await db.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: name || email.split("@")[0] }
+        }
+      });
+
+      if (result.error) throw result.error;
+
+      if (!result.data.session) {
+        toast("Cuenta creada. Confirma tu correo y después inicia sesión.");
+        return;
       }
+    } else if (result.error) {
+      throw result.error;
     }
 
-    // ==============================================
-    // REGISTRO
-    // ==============================================
-    $("registerBtn").addEventListener("click", async () => {
-      if (!db) return;
+    $("authModal").close();
+    toast("¡Bienvenido a Conecta!");
+  } catch (error) {
+    console.error(error);
+    toast(error.message || "Error de autenticación.");
+  } finally {
+    $("authSubmit").disabled = false;
+  }
+}
 
-      $("usernameField").classList.remove("hidden");
+async function createConversation(event) {
+  event.preventDefault();
 
-      const email = $("email").value.trim();
-      const password = $("password").value;
-      const username = $("username").value.trim();
+  if (!db || !user) {
+    $("newChatModal").close();
+    $("authModal").showModal();
+    toast("Inicia sesión para crear conversaciones reales.");
+    return;
+  }
 
-      if (!email || !password || !username) {
-        status("authStatus", "Completa el correo, la contraseña y el usuario.", "error");
-        return;
-      }
+  const email = $("contactEmail").value.trim().toLowerCase();
 
-      if (password.length < 6) {
-        status("authStatus", "La contraseña debe tener al menos 6 caracteres.", "error");
-        return;
-      }
+  try {
+    const { data: person, error } = await db
+      .from("profiles")
+      .select("id,display_name,email")
+      .eq("email", email)
+      .maybeSingle();
 
-      if (!validUsername(username)) {
-        status(
-          "authStatus",
-          "El usuario debe tener entre 3 y 24 caracteres y solo letras, números o guion bajo.",
-          "error"
-        );
-        return;
-      }
+    if (error) throw error;
 
-      $("registerBtn").disabled = true;
-      status("authStatus", "Creando cuenta...");
+    if (!person) {
+      $("newChatNote").textContent =
+        "No encontramos esa cuenta. La persona debe registrarse primero.";
+      return;
+    }
 
-      try {
-        const { data, error } = await db.auth.signUp({
-          email,
-          password,
-          options: { data: { username } }
-        });
+    if (person.id === user.id) {
+      $("newChatNote").textContent =
+        "No puedes crear una conversación contigo mismo.";
+      return;
+    }
 
-        if (error) throw error;
-        if (!data.user) throw new Error("No se ha podido crear la cuenta.");
+    const { data: memberships, error: membershipError } = await db
+      .from("conversation_members")
+      .select("conversation_id")
+      .eq("user_id", user.id);
 
-        if (data.session) {
-          currentUser = data.user;
-          await ensureProfile(username);
-          await enterApp();
-        } else {
-          status(
-            "authStatus",
-            "Cuenta creada. Confirma tu correo si Supabase te lo solicita y después inicia sesión.",
-            "success"
-          );
-        }
-      } catch (error) {
-        status("authStatus", errorText(error), "error");
-      } finally {
-        $("registerBtn").disabled = false;
-      }
-    });
+    if (membershipError) throw membershipError;
 
-    // ==============================================
-    // INICIO DE SESIÓN
-    // ==============================================
-    $("loginBtn").addEventListener("click", async () => {
-      if (!db) return;
+    let conversationId = null;
 
-      const email = $("email").value.trim();
-      const password = $("password").value;
-
-      if (!email || !password) {
-        status("authStatus", "Introduce tu correo y contraseña.", "error");
-        return;
-      }
-
-      $("loginBtn").disabled = true;
-      status("authStatus", "Iniciando sesión...");
-
-      try {
-        const { data, error } = await db.auth.signInWithPassword({
-          email,
-          password
-        });
-
-        if (error) throw error;
-
-        currentUser = data.user;
-        await enterApp();
-        status("authStatus", "");
-      } catch (error) {
-        status("authStatus", errorText(error), "error");
-      } finally {
-        $("loginBtn").disabled = false;
-      }
-    });
-
-    // ==============================================
-    // PERFIL
-    // ==============================================
-    async function ensureProfile(preferredUsername = "") {
-      const { data: existing, error } = await db
-        .from("profiles")
-        .select("id, username")
-        .eq("id", currentUser.id)
+    for (const membership of memberships || []) {
+      const { data: otherMember, error: otherError } = await db
+        .from("conversation_members")
+        .select("user_id")
+        .eq("conversation_id", membership.conversation_id)
+        .eq("user_id", person.id)
         .maybeSingle();
 
-      if (error) throw error;
+      if (otherError) throw otherError;
 
-      if (existing) {
-        currentProfile = existing;
-        return existing;
-      }
-
-      let username =
-        preferredUsername ||
-        currentUser.user_metadata?.username ||
-        currentUser.email?.split("@")[0] ||
-        ("user_" + currentUser.id.slice(0, 8));
-
-      username = username.replace(/[^a-zA-Z0-9_]/g, "_").slice(0, 24);
-
-      if (username.length < 3) {
-        username = "user_" + currentUser.id.slice(0, 8);
-      }
-
-      const { data: created, error: insertError } = await db
-        .from("profiles")
-        .insert({ id: currentUser.id, username })
-        .select("id, username")
-        .single();
-
-      if (insertError) {
-        if (insertError.code === "23505") {
-          throw new Error(
-            "Ese nombre de usuario ya existe. Contacta con el administrador para cambiarlo."
-          );
-        }
-        throw insertError;
-      }
-
-      currentProfile = created;
-      return created;
-    }
-
-    async function enterApp() {
-      const profile = await ensureProfile();
-
-      $("myUsername").textContent = "@" + profile.username;
-      $("myEmail").textContent = currentUser.email || "";
-      showApp();
-
-      await Promise.all([loadRequests(), loadFriends()]);
-      subscribeToRequests();
-    }
-
-    // ==============================================
-    // CERRAR SESIÓN
-    // ==============================================
-    $("logoutBtn").addEventListener("click", async () => {
-      if (!db) return;
-
-      $("logoutBtn").disabled = true;
-
-      try {
-        cleanupRealtime();
-        const { error } = await db.auth.signOut();
-        if (error) throw error;
-        resetState();
-        showAuth();
-      } catch (error) {
-        status("chatStatus", errorText(error), "error");
-      } finally {
-        $("logoutBtn").disabled = false;
-      }
-    });
-
-    function resetState() {
-      currentUser = null;
-      currentProfile = null;
-      activeConversationId = null;
-      activeFriendId = null;
-      activeFriendUsername = "";
-
-      $("messageInput").disabled = true;
-      $("sendBtn").disabled = true;
-      $("chatTitle").textContent = "Tus conversaciones";
-      $("chatSubtitle").textContent = "Selecciona un amigo para empezar a hablar.";
-
-      clear($("messages"));
-      clear($("friendsList"));
-      clear($("requestsList"));
-      clear($("searchResults"));
-    }
-
-    function cleanupRealtime() {
-      if (!db) return;
-
-      if (messagesChannel) {
-        db.removeChannel(messagesChannel);
-        messagesChannel = null;
-      }
-
-      if (requestsChannel) {
-        db.removeChannel(requestsChannel);
-        requestsChannel = null;
+      if (otherMember) {
+        conversationId = membership.conversation_id;
+        break;
       }
     }
 
-    // ==============================================
-    // BUSCAR USUARIOS
-    // ==============================================
-    $("searchBtn").addEventListener("click", searchUsers);
-
-    $("searchInput").addEventListener("keydown", event => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        searchUsers();
-      }
-    });
-
-    async function searchUsers() {
-      if (!currentUser) return;
-
-      const term = $("searchInput").value.trim();
-      clear($("searchResults"));
-      status("searchStatus");
-
-      if (term.length < 2) {
-        status("searchStatus", "Escribe al menos 2 caracteres.", "error");
-        return;
-      }
-
-      $("searchBtn").disabled = true;
-
-      try {
-        const safeTerm = term.replace(/[,%_()]/g, "");
-
-        const { data, error } = await db
-          .from("profiles")
-          .select("id, username")
-          .ilike("username", "%" + safeTerm + "%")
-          .neq("id", currentUser.id)
-          .order("username")
-          .limit(20);
-
-        if (error) throw error;
-
-        if (!data?.length) {
-          status("searchStatus", "No se encontraron usuarios.");
-          return;
-        }
-
-        for (const profile of data) {
-          const item = element("div", "item");
-          item.appendChild(element("strong", "", "@" + profile.username));
-
-          const button = element("button", "", "Añadir amigo");
-          button.addEventListener("click", () => sendFriendRequest(profile));
-
-          const actions = element("div", "actions");
-          actions.appendChild(button);
-          item.appendChild(actions);
-          $("searchResults").appendChild(item);
-        }
-      } catch (error) {
-        status("searchStatus", errorText(error), "error");
-      } finally {
-        $("searchBtn").disabled = false;
-      }
-    }
-
-    // ==============================================
-    // SOLICITUDES DE AMISTAD
-    // ==============================================
-    async function sendFriendRequest(profile) {
-      try {
-        const { data: existing, error } = await db
-          .from("friend_requests")
-          .select("id, from_user, to_user, status")
-          .or(
-            "and(from_user.eq." + currentUser.id + ",to_user.eq." + profile.id + ")," +
-            "and(from_user.eq." + profile.id + ",to_user.eq." + currentUser.id + ")"
-          );
-
-        if (error) throw error;
-
-        if (existing?.some(r => r.status === "accepted")) {
-          status("searchStatus", "Ya sois amigos.", "success");
-          return;
-        }
-
-        if (existing?.some(r =>
-          r.status === "pending" && r.from_user === currentUser.id
-        )) {
-          status("searchStatus", "Ya has enviado una solicitud.");
-          return;
-        }
-
-        const incoming = existing?.find(r =>
-          r.status === "pending" && r.to_user === currentUser.id
-        );
-
-        if (incoming) {
-          await acceptRequest(incoming);
-          status("searchStatus", "Solicitud aceptada.", "success");
-          return;
-        }
-
-        const { error: insertError } = await db
-          .from("friend_requests")
-          .insert({
-            from_user: currentUser.id,
-            to_user: profile.id,
-            status: "pending"
-          });
-
-        if (insertError) throw insertError;
-
-        status("searchStatus", "Solicitud enviada a @" + profile.username, "success");
-        await loadRequests();
-      } catch (error) {
-        status("searchStatus", errorText(error), "error");
-      }
-    }
-
-    async function loadRequests() {
-      if (!currentUser) return;
-
-      clear($("requestsList"));
-
-      const { data, error } = await db
-        .from("friend_requests")
-        .select("id, from_user, to_user, status, created_at")
-        .eq("to_user", currentUser.id)
-        .eq("status", "pending")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        $("requestsList").appendChild(
-          element("div", "muted", "Error al cargar solicitudes: " + error.message)
-        );
-        return;
-      }
-
-      if (!data?.length) {
-        $("requestsList").appendChild(
-          element("div", "muted", "No tienes solicitudes pendientes.")
-        );
-        return;
-      }
-
-      const ids = [...new Set(data.map(r => r.from_user))];
-
-      const { data: profiles, error: profileError } = await db
-        .from("profiles")
-        .select("id, username")
-        .in("id", ids);
-
-      if (profileError) throw profileError;
-
-      const map = new Map((profiles || []).map(p => [p.id, p]));
-
-      for (const request of data) {
-        const username = map.get(request.from_user)?.username || "Usuario";
-        const item = element("div", "item");
-        item.appendChild(element("strong", "", "@" + username));
-
-        const button = element("button", "", "Aceptar");
-        button.addEventListener("click", async () => {
-          button.disabled = true;
-          try {
-            await acceptRequest(request);
-            await loadRequests();
-            await loadFriends();
-          } catch (error) {
-            status("chatStatus", errorText(error), "error");
-            button.disabled = false;
-          }
-        });
-
-        const actions = element("div", "actions");
-        actions.appendChild(button);
-        item.appendChild(actions);
-        $("requestsList").appendChild(item);
-      }
-    }
-
-    async function acceptRequest(request) {
-      // Solo el destinatario debe poder aceptar solicitudes; RLS debe verificarlo.
-      const { data: updated, error: updateError } = await db
-        .from("friend_requests")
-        .update({ status: "accepted" })
-        .eq("id", request.id)
-        .eq("to_user", currentUser.id)
-        .eq("status", "pending")
-        .select("id")
-        .maybeSingle();
-
-      if (updateError) throw updateError;
-      if (!updated) throw new Error("La solicitud ya no está pendiente.");
-
-      const { data: conversation, error: convError } = await db
+    if (!conversationId) {
+      const { data: conversation, error: conversationError } = await db
         .from("conversations")
-        .insert({ created_by: currentUser.id })
+        .insert({ created_by: user.id })
         .select("id")
         .single();
 
-      if (convError) throw convError;
+      if (conversationError) throw conversationError;
 
-      const { error: membersError } = await db
+      conversationId = conversation.id;
+
+      const { error: insertMembersError } = await db
         .from("conversation_members")
         .insert([
-          { conversation_id: conversation.id, user_id: currentUser.id },
-          { conversation_id: conversation.id, user_id: request.from_user }
+          { conversation_id: conversationId, user_id: user.id },
+          { conversation_id: conversationId, user_id: person.id }
         ]);
 
-      if (membersError) {
-        throw new Error(
-          "Solicitud aceptada, pero falló la creación del chat. Comprueba las políticas RLS de conversation_members."
-        );
-      }
-
-      await loadFriends();
-
-      const { data: friend } = await db
-        .from("profiles")
-        .select("username")
-        .eq("id", request.from_user)
-        .maybeSingle();
-
-      await openConversation(
-        request.from_user,
-        friend?.username || "Amigo"
-      );
+      if (insertMembersError) throw insertMembersError;
     }
 
-    // ==============================================
-    // AMIGOS
-    // ==============================================
-    async function loadFriends() {
-      if (!currentUser) return;
+    await loadConversations();
 
-      clear($("friendsList"));
+    $("newChatModal").close();
 
-      const { data: requests, error } = await db
-        .from("friend_requests")
-        .select("from_user, to_user")
-        .eq("status", "accepted")
-        .or(
-          "from_user.eq." + currentUser.id +
-          ",to_user.eq." + currentUser.id
-        );
+    const conversation = conversations.find(c => c.id === conversationId);
 
-      if (error) {
-        $("friendsList").appendChild(
-          element("div", "muted", "Error al cargar amigos: " + error.message)
-        );
-        return;
-      }
-
-      const ids = [...new Set((requests || []).map(r =>
-        r.from_user === currentUser.id ? r.to_user : r.from_user
-      ))];
-
-      if (!ids.length) {
-        $("friendsList").appendChild(
-          element("div", "muted", "Todavía no tienes amigos.")
-        );
-        return;
-      }
-
-      const { data: profiles, error: profileError } = await db
-        .from("profiles")
-        .select("id, username")
-        .in("id", ids)
-        .order("username");
-
-      if (profileError) throw profileError;
-
-      for (const profile of profiles || []) {
-        const item = element("div", "item");
-        item.appendChild(element("strong", "", "@" + profile.username));
-
-        const button = element("button", "secondary", "Abrir chat");
-        button.addEventListener("click", () =>
-          openConversation(profile.id, profile.username)
-        );
-
-        const actions = element("div", "actions");
-        actions.appendChild(button);
-        item.appendChild(actions);
-        $("friendsList").appendChild(item);
-      }
+    if (conversation) {
+      selectConversation(conversation);
+    } else {
+      toast("Conversación creada. Actualiza la lista si no aparece.");
     }
+  } catch (error) {
+    console.error(error);
+    toast(error.message || "No se pudo crear la conversación.");
+  }
+}
 
-    // ==============================================
-    // ABRIR CONVERSACIÓN
-    // ==============================================
-    async function openConversation(friendId, friendUsername) {
-      if (!currentUser || friendId === currentUser.id) return;
+/* EVENTOS */
 
-      status("chatStatus", "Abriendo chat...");
+$("searchInput").addEventListener("input", event => {
+  renderContacts(event.target.value);
+});
 
-      try {
-        // Comprobar amistad aceptada antes de abrir o crear conversación.
-        const { data: friendship, error: friendError } = await db
-          .from("friend_requests")
-          .select("id")
-          .eq("status", "accepted")
-          .or(
-            "and(from_user.eq." + currentUser.id + ",to_user.eq." + friendId + ")," +
-            "and(from_user.eq." + friendId + ",to_user.eq." + currentUser.id + ")"
-          )
-          .limit(1);
+$("newChatButton").addEventListener("click", () => {
+  $("newChatNote").textContent =
+    "La otra persona debe tener una cuenta registrada.";
 
-        if (friendError) throw friendError;
-        if (!friendship?.length) {
-          throw new Error("Solo puedes conversar con amigos que hayan aceptado tu solicitud.");
-        }
+  $("newChatModal").showModal();
+});
 
-        const { data: myMemberships, error: myError } = await db
-          .from("conversation_members")
-          .select("conversation_id")
-          .eq("user_id", currentUser.id);
+$("welcomeNewChat").addEventListener("click", () => {
+  $("newChatModal").showModal();
+});
 
-        if (myError) throw myError;
+$("accountButton").addEventListener("click", () => {
+  if (user) {
+    toast("Sesión: " + user.email);
+  } else {
+    $("authModal").showModal();
+  }
+});
 
-        const myIds = (myMemberships || []).map(r => r.conversation_id);
-        let conversationId = null;
+$("backButton").addEventListener("click", showContactLayout);
 
-        if (myIds.length) {
-          const { data: shared, error: sharedError } = await db
-            .from("conversation_members")
-            .select("conversation_id")
-            .eq("user_id", friendId)
-            .in("conversation_id", myIds)
-            .limit(1);
+$("authForm").addEventListener("submit", authenticate);
+$("newChatForm").addEventListener("submit", createConversation);
 
-          if (sharedError) throw sharedError;
-          if (shared?.length) conversationId = shared[0].conversation_id;
-        }
+$("messageForm").addEventListener("submit", async event => {
+  event.preventDefault();
 
-        if (!conversationId) {
-          const { data: conversation, error: createError } = await db
-            .from("conversations")
-            .insert({ created_by: currentUser.id })
-            .select("id")
-            .single();
+  const input = $("messageInput");
+  const content = input.value.trim();
 
-          if (createError) throw createError;
+  if (!content) return;
 
-          const { error: membersError } = await db
-            .from("conversation_members")
-            .insert([
-              { conversation_id: conversation.id, user_id: currentUser.id },
-              { conversation_id: conversation.id, user_id: friendId }
-            ]);
+  input.value = "";
+  input.style.height = "auto";
 
-          if (membersError) throw membersError;
-          conversationId = conversation.id;
-        }
+  await sendMessage(content);
+  input.focus();
+});
 
-        activeConversationId = conversationId;
-        activeFriendId = friendId;
-        activeFriendUsername = friendUsername;
+$("messageInput").addEventListener("keydown", event => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    $("messageForm").requestSubmit();
+  }
+});
 
-        $("chatTitle").textContent = "@" + friendUsername;
-        $("chatSubtitle").textContent = "Conversación privada";
-        $("messageInput").disabled = false;
-        $("sendBtn").disabled = false;
+$("messageInput").addEventListener("input", event => {
+  event.target.style.height = "auto";
+  event.target.style.height =
+    Math.min(event.target.scrollHeight, 130) + "px";
+});
 
-        await loadMessages();
-        subscribeToMessages(conversationId);
-        status("chatStatus");
-        $("messageInput").focus();
-      } catch (error) {
-        status("chatStatus", errorText(error), "error");
-      }
+$("logoutButton").addEventListener("click", async () => {
+  if (db) {
+    const { error } = await db.auth.signOut();
+
+    if (error) {
+      toast("No se pudo cerrar la sesión.");
+      return;
     }
+  }
 
-    // ==============================================
-    // CARGAR Y MOSTRAR MENSAJES
-    // ==============================================
-    async function loadMessages() {
-      if (!activeConversationId || busyLoadingMessages) return;
+  startDemo();
+  showContactLayout();
+  toast("Sesión cerrada.");
+});
 
-      busyLoadingMessages = true;
-
-      try {
-        const { data, error } = await db
-          .from("messages")
-          .select("id, conversation_id, sender_id, content, created_at")
-          .eq("conversation_id", activeConversationId)
-          .order("created_at", { ascending: true })
-          .limit(200);
-
-        if (error) throw error;
-        renderMessages(data || []);
-      } catch (error) {
-        status("chatStatus", errorText(error), "error");
-      } finally {
-        busyLoadingMessages = false;
-      }
-    }
-
-    function renderMessages(messages) {
-      const container = $("messages");
-      clear(container);
-
-      if (!messages.length) {
-        container.appendChild(
-          element("div", "empty", "No hay mensajes todavía. ¡Escribe el primero!")
-        );
-        return;
-      }
-
-      for (const message of messages) {
-        const mine = message.sender_id === currentUser.id;
-        const bubble = element("div", "bubble" + (mine ? " mine" : ""));
-
-        bubble.appendChild(
-          element(
-            "div",
-            "bubble-author",
-            mine ? "Tú" : "@" + activeFriendUsername
-          )
-        );
-
-        bubble.appendChild(element("div", "", message.content));
-        bubble.appendChild(element("div", "bubble-time", formatTime(message.created_at)));
-        container.appendChild(bubble);
-      }
-
-      container.scrollTop = container.scrollHeight;
-    }
-
-    $("messageForm").addEventListener("submit", async event => {
-      event.preventDefault();
-
-      if (!currentUser || !activeConversationId) return;
-
-      const content = $("messageInput").value.trim();
-      if (!content) return;
-
-      $("sendBtn").disabled = true;
-
-      try {
-        const { error } = await db
-          .from("messages")
-          .insert({
-            conversation_id: activeConversationId,
-            sender_id: currentUser.id,
-            content
-          });
-
-        if (error) throw error;
-
-        $("messageInput").value = "";
-        await loadMessages();
-        status("chatStatus");
-      } catch (error) {
-        status("chatStatus", errorText(error), "error");
-      } finally {
-        $("sendBtn").disabled = !activeConversationId;
-        $("messageInput").focus();
-      }
-    });
-
-    // ==============================================
-    // SUPABASE REALTIME
-    // ==============================================
-    function subscribeToMessages(conversationId) {
-      if (messagesChannel) {
-        db.removeChannel(messagesChannel);
-        messagesChannel = null;
-      }
-
-      messagesChannel = db
-        .channel("messages-" + conversationId)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "messages",
-            filter: "conversation_id=eq." + conversationId
-          },
-          () => loadMessages()
-        )
-        .subscribe(state => {
-          if (state === "CHANNEL_ERROR") {
-            status(
-              "chatStatus",
-              "No se pudo activar el tiempo real. Comprueba Realtime en Supabase.",
-              "error"
-            );
-          }
-        });
-    }
-
-    function subscribeToRequests() {
-      if (requestsChannel) {
-        db.removeChannel(requestsChannel);
-        requestsChannel = null;
-      }
-
-      requestsChannel = db
-        .channel("requests-" + currentUser.id)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "friend_requests",
-            filter: "to_user=eq." + currentUser.id
-          },
-          async () => {
-            await loadRequests();
-            await loadFriends();
-          }
-        )
-        .subscribe();
-    }
-
-    // Arrancar la aplicación.
-    init();
-  </script>
+initialize();
+</script>
 </body>
 </html>
