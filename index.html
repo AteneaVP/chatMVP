@@ -2,105 +2,73 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ChatMVP - Chat de amigos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ChatMVP</title>
+  <meta name="theme-color" content="#101827">
 
-  <!-- Supabase JS v2: debe cargarse antes de nuestro código -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root {
+      color-scheme: dark;
       --bg: #0b1120;
-      --panel: #131c2e;
-      --panel2: #1a2740;
-      --text: #f2f5ff;
-      --muted: #a4b0c7;
-      --primary: #6d7cff;
-      --primary-hover: #5264f0;
-      --border: #2b3851;
-      --danger: #ff6b78;
+      --panel: #141e30;
+      --panel2: #1d2a40;
+      --border: #304059;
+      --text: #f3f6ff;
+      --muted: #a9b5ca;
+      --primary: #7182ff;
+      --danger: #ff777f;
       --success: #45d6a0;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       min-height: 100vh;
       background: var(--bg);
       color: var(--text);
-      font-family: Arial, Helvetica, sans-serif;
+      font: 15px Arial, sans-serif;
     }
 
-    button, input {
-      font: inherit;
-    }
+    button, input { font: inherit; }
 
     button {
-      cursor: pointer;
       border: 0;
       border-radius: 9px;
-      padding: 10px 14px;
+      padding: 11px 14px;
       background: var(--primary);
       color: white;
-      font-weight: 700;
-      transition: background 0.15s ease;
+      font-weight: bold;
+      cursor: pointer;
     }
 
-    button:hover {
-      background: var(--primary-hover);
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    button:hover { filter: brightness(1.1); }
+    button:disabled { opacity: .55; cursor: not-allowed; }
 
     input {
       width: 100%;
+      min-width: 0;
       padding: 12px;
-      background: #0d1628;
-      color: var(--text);
       border: 1px solid var(--border);
       border-radius: 9px;
       outline: none;
+      background: #0b1424;
+      color: var(--text);
     }
 
-    input:focus {
-      border-color: var(--primary);
-    }
+    input:focus { border-color: var(--primary); }
+    .hidden { display: none !important; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .status { font-size: 13px; overflow-wrap: anywhere; margin-top: 10px; }
+    .error { color: var(--danger); }
+    .success { color: var(--success); }
 
-    .hidden {
-      display: none !important;
-    }
-
-    .muted {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .status {
-      min-height: 20px;
-      margin: 10px 0;
-      font-size: 14px;
-      overflow-wrap: anywhere;
-    }
-
-    .status.error {
-      color: var(--danger);
-    }
-
-    .status.success {
-      color: var(--success);
-    }
-
-    .auth-wrapper {
+    .auth-screen {
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: grid;
+      place-items: center;
       padding: 20px;
     }
 
@@ -111,47 +79,22 @@
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 18px;
-      box-shadow: 0 20px 70px #0005;
+      box-shadow: 0 18px 65px #0005;
     }
 
-    .brand {
-      margin: 0 0 8px;
-      font-size: 30px;
-      letter-spacing: -1px;
-    }
-
-    .brand span {
-      color: var(--primary);
-    }
-
-    .auth-card p {
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .form-group {
-      margin: 14px 0;
-    }
-
-    .form-group label {
+    h1 { margin-top: 0; }
+    .logo span { color: var(--primary); }
+    .auth-card p { color: var(--muted); line-height: 1.5; }
+    .field { margin: 16px 0; }
+    .field label {
       display: block;
       margin-bottom: 7px;
-      font-size: 13px;
       color: var(--muted);
+      font-size: 13px;
     }
 
-    .full-width {
-      width: 100%;
-    }
-
-    .secondary-button {
-      background: var(--panel2);
-      border: 1px solid var(--border);
-    }
-
-    .secondary-button:hover {
-      background: #243452;
-    }
+    .full { width: 100%; }
+    .secondary { background: var(--panel2); border: 1px solid var(--border); }
 
     .app {
       min-height: 100vh;
@@ -159,119 +102,70 @@
       grid-template-columns: 320px minmax(0, 1fr);
     }
 
-    .sidebar {
+    aside {
+      padding: 18px;
       background: var(--panel);
       border-right: 1px solid var(--border);
-      padding: 20px;
       display: flex;
       flex-direction: column;
       gap: 20px;
       min-width: 0;
     }
 
-    .sidebar-header {
+    .side-header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      align-items: center;
+      gap: 8px;
     }
 
-    .sidebar-header h1 {
-      font-size: 23px;
-      margin: 0;
-    }
-
-    .sidebar-header h1 span {
-      color: var(--primary);
-    }
-
-    .profile-card {
-      padding: 14px;
-      border-radius: 12px;
+    .side-header h1 { font-size: 23px; margin: 0; }
+    .profile {
       background: var(--panel2);
+      border-radius: 10px;
+      padding: 13px;
       overflow-wrap: anywhere;
-    }
-
-    .profile-name {
-      font-weight: bold;
-      margin-bottom: 5px;
     }
 
     .section-title {
       margin: 0 0 10px;
-      font-size: 14px;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.8px;
+      letter-spacing: .7px;
+      font-size: 12px;
     }
 
-    .search-row {
-      display: flex;
-      gap: 7px;
-    }
+    .search-row { display: flex; gap: 7px; }
+    .search-row button { flex-shrink: 0; }
 
-    .search-row input {
-      min-width: 0;
-    }
-
-    .search-row button {
-      flex-shrink: 0;
-    }
-
-    .list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .list-item {
-      background: #0d1628;
-      border: 1px solid var(--border);
+    .list { display: flex; flex-direction: column; gap: 8px; }
+    .item {
       padding: 12px;
+      border: 1px solid var(--border);
       border-radius: 10px;
+      background: #0b1424;
       overflow-wrap: anywhere;
     }
 
-    .list-item strong {
-      display: block;
-      margin-bottom: 7px;
-    }
+    .item strong { display: block; margin-bottom: 8px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 7px; }
+    .actions button { padding: 8px 10px; font-size: 12px; }
 
-    .item-actions {
-      display: flex;
-      gap: 7px;
-      flex-wrap: wrap;
-      margin-top: 8px;
-    }
-
-    .item-actions button {
-      font-size: 12px;
-      padding: 8px 10px;
-    }
-
-    .chat-panel {
-      min-width: 0;
+    .chat {
       height: 100vh;
+      min-width: 0;
       display: flex;
       flex-direction: column;
     }
 
     .chat-header {
       padding: 20px;
+      background: #101a2b;
       border-bottom: 1px solid var(--border);
-      background: #0f182a;
     }
 
-    .chat-header h2 {
-      margin: 0 0 5px;
-      font-size: 19px;
-    }
-
-    .chat-header p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
+    .chat-header h2 { font-size: 19px; margin: 0 0 6px; }
+    .chat-header p { margin: 0; color: var(--muted); font-size: 13px; }
 
     .messages {
       flex: 1;
@@ -282,156 +176,123 @@
       gap: 12px;
     }
 
-    .empty-state {
+    .empty {
       margin: auto;
       max-width: 340px;
       text-align: center;
       color: var(--muted);
       line-height: 1.6;
-      padding: 20px;
     }
 
-    .message {
-      max-width: min(75%, 560px);
+    .bubble {
+      align-self: flex-start;
+      max-width: min(80%, 560px);
       padding: 11px 14px;
       background: var(--panel2);
       border: 1px solid var(--border);
       border-radius: 13px 13px 13px 3px;
-      align-self: flex-start;
       overflow-wrap: anywhere;
       white-space: pre-wrap;
     }
 
-    .message.mine {
+    .bubble.mine {
       align-self: flex-end;
-      background: #3846a1;
-      border-color: #4e5bc0;
+      background: #3949a5;
+      border-color: #5363c3;
       border-radius: 13px 13px 3px 13px;
     }
 
-    .message-author {
+    .bubble-author {
       font-size: 11px;
-      color: #c5cfff;
-      margin-bottom: 5px;
-      font-weight: bold;
+      color: #d0d7ff;
+      margin-bottom: 6px;
     }
 
-    .message-time {
+    .bubble-time {
       margin-top: 7px;
       text-align: right;
+      color: #d0d7e9;
       font-size: 10px;
-      color: #d3d9ef;
-      opacity: 0.8;
     }
 
     .composer {
-      padding: 15px 20px;
-      border-top: 1px solid var(--border);
-      background: #0f182a;
       display: flex;
       gap: 10px;
+      padding: 15px 20px;
+      border-top: 1px solid var(--border);
+      background: #101a2b;
     }
 
-    .composer input {
-      min-width: 0;
-    }
+    .composer input { flex: 1; }
 
-    .composer button {
-      flex-shrink: 0;
-    }
+    #chatStatus { padding: 0 20px 10px; }
 
     @media (max-width: 760px) {
-      .app {
-        grid-template-columns: 1fr;
-      }
-
-      .sidebar {
-        border-right: 0;
-        border-bottom: 1px solid var(--border);
-        padding: 14px;
-        gap: 14px;
-      }
-
-      .chat-panel {
-        height: 70vh;
-        min-height: 430px;
-      }
-
-      .sidebar .list {
-        max-height: 180px;
-        overflow-y: auto;
-      }
-
-      .message {
-        max-width: 90%;
-      }
+      .app { grid-template-columns: 1fr; }
+      aside { border-right: 0; border-bottom: 1px solid var(--border); gap: 14px; }
+      .chat { height: 70vh; min-height: 420px; }
+      .bubble { max-width: 90%; }
     }
   </style>
 </head>
 
 <body>
 
-  <!-- REGISTRO E INICIO DE SESIÓN -->
-  <section id="authScreen" class="auth-wrapper">
+  <section id="authScreen" class="auth-screen">
     <div class="auth-card">
-      <h1 class="brand">Chat<span>MVP</span></h1>
-      <p>Habla con tus amigos en un espacio privado.</p>
+      <h1 class="logo">Chat<span>MVP</span></h1>
+      <p>Conecta con tus amigos y conversa en tiempo real.</p>
 
-      <div class="form-group">
+      <div class="field">
         <label for="email">Correo electrónico</label>
-        <input id="email" type="email" placeholder="tu@correo.com"
-               autocomplete="email">
+        <input id="email" type="email" autocomplete="email"
+               placeholder="tu@correo.com">
       </div>
 
-      <div class="form-group">
+      <div class="field">
         <label for="password">Contraseña</label>
-        <input id="password" type="password" placeholder="Mínimo 6 caracteres"
-               autocomplete="current-password">
+        <input id="password" type="password"
+               autocomplete="current-password"
+               placeholder="Mínimo 6 caracteres">
       </div>
 
-      <div id="usernameGroup" class="form-group hidden">
+      <div id="usernameField" class="field hidden">
         <label for="username">Nombre de usuario</label>
-        <input id="username" type="text" placeholder="p. ej. alex23"
-               maxlength="24" autocomplete="username">
+        <input id="username" autocomplete="username"
+               maxlength="24" placeholder="usuario123">
       </div>
 
-      <button id="loginBtn" class="full-width">Iniciar sesión</button>
-
-      <button id="registerBtn" class="full-width secondary-button"
-              style="margin-top:10px">
+      <button id="loginBtn" class="full">Iniciar sesión</button>
+      <button id="registerBtn" class="full secondary" style="margin-top:10px">
         Crear cuenta
       </button>
 
       <div id="authStatus" class="status" role="status" aria-live="polite"></div>
 
       <p class="muted">
-        Si acabas de registrarte y Supabase requiere confirmar tu correo,
-        revisa tu bandeja de entrada antes de iniciar sesión.
+        Si te registras y se solicita confirmar tu correo, confirma el email
+        antes de iniciar sesión.
       </p>
     </div>
   </section>
 
-  <!-- APLICACIÓN PRINCIPAL -->
   <main id="appScreen" class="app hidden">
-
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <h1>Chat<span>MVP</span></h1>
-        <button id="logoutBtn" class="secondary-button">Salir</button>
+    <aside>
+      <div class="side-header">
+        <h1 class="logo">Chat<span>MVP</span></h1>
+        <button id="logoutBtn" class="secondary">Salir</button>
       </div>
 
-      <div class="profile-card">
-        <div class="muted">Has iniciado sesión como</div>
-        <div id="myUsername" class="profile-name">Cargando...</div>
+      <div class="profile">
+        <div class="muted">Tu cuenta</div>
+        <strong id="myUsername">Cargando...</strong>
         <div id="myEmail" class="muted"></div>
       </div>
 
       <section>
         <h3 class="section-title">Buscar amigos</h3>
         <div class="search-row">
-          <input id="searchInput" type="text"
-                 placeholder="Nombre de usuario"
-                 maxlength="24">
+          <input id="searchInput" placeholder="Nombre de usuario" maxlength="24">
           <button id="searchBtn">Buscar</button>
         </div>
         <div id="searchStatus" class="status" role="status"></div>
@@ -441,76 +302,81 @@
       <section>
         <h3 class="section-title">Solicitudes recibidas</h3>
         <div id="requestsList" class="list">
-          <div class="muted">Cargando solicitudes...</div>
+          <div class="muted">Cargando...</div>
         </div>
       </section>
 
       <section>
-        <h3 class="section-title">Amigos y chats</h3>
+        <h3 class="section-title">Amigos</h3>
         <div id="friendsList" class="list">
-          <div class="muted">Cargando amigos...</div>
+          <div class="muted">Cargando...</div>
         </div>
       </section>
     </aside>
 
-    <section class="chat-panel">
+    <section class="chat">
       <header class="chat-header">
         <h2 id="chatTitle">Tus conversaciones</h2>
         <p id="chatSubtitle">Selecciona un amigo para empezar a hablar.</p>
       </header>
 
       <div id="messages" class="messages">
-        <div class="empty-state">
+        <div class="empty">
           <h3>¡Bienvenido a ChatMVP!</h3>
-          <p>Busca amigos, envía solicitudes y empieza a conversar.</p>
+          <p>Busca usuarios, añade amigos y empieza a conversar.</p>
         </div>
       </div>
 
       <form id="messageForm" class="composer">
-        <input id="messageInput" type="text"
-               placeholder="Escribe un mensaje..."
-               maxlength="4000" autocomplete="off" disabled>
-        <button id="sendBtn" type="submit" disabled>Enviar</button>
+        <input id="messageInput" maxlength="4000"
+               placeholder="Escribe un mensaje..." autocomplete="off" disabled>
+        <button id="sendBtn" disabled>Enviar</button>
       </form>
-
-      <div id="chatStatus" class="status" style="padding:0 20px"
-           role="status" aria-live="polite"></div>
+      <div id="chatStatus" class="status" role="status" aria-live="polite"></div>
     </section>
   </main>
 
   <script>
     "use strict";
 
-    // ==========================================
+    // ==============================================
     // CONFIGURACIÓN DE TU PROYECTO SUPABASE
-    // ==========================================
+    // ==============================================
     const SUPABASE_URL = "https://kiubittekiloevifxrgj.supabase.co";
     const SUPABASE_KEY = "sb_publishable_KEmE5HMZCd9oVfjMHiAgLA_VLHXE-PX";
 
-    // No declares otro cliente Supabase en otra parte del archivo.
-    let supabaseClient = null;
-
-    // ==========================================
-    // ESTADO DE LA APLICACIÓN
-    // ==========================================
+    let db = null;
     let currentUser = null;
     let currentProfile = null;
     let activeConversationId = null;
     let activeFriendId = null;
-    let activeFriendUsername = null;
+    let activeFriendUsername = "";
     let messagesChannel = null;
-    let refreshChannel = null;
-    let loadingMessages = false;
+    let requestsChannel = null;
+    let busyLoadingMessages = false;
 
-    const $ = (id) => document.getElementById(id);
+    const $ = id => document.getElementById(id);
 
-    // ==========================================
-    // UTILIDADES
-    // ==========================================
-    function setStatus(id, message, type = "") {
-      const element = $(id);
-      element.textContent = message || "";
-      element.className = "status" + (type ? " " + type : "");
+    function status(id, message = "", type = "") {
+      const el = $(id);
+      el.textContent = message;
+      el.className = "status" + (type ? " " + type : "");
+    }
+
+    function element(tag, className = "", text = "") {
+      const el = document.createElement(tag);
+      if (className) el.className = className;
+      el.textContent = text;
+      return el;
+    }
+
+    function clear(el) {
+      el.replaceChildren();
+    }
+
+    function errorText(error) {
+      console.error(error);
+      return error?.message || "Ha ocurrido un error inesperado.";
     }
 
     function showAuth() {
@@ -523,199 +389,141 @@
       $("appScreen").classList.remove("hidden");
     }
 
-    function formatTime(dateValue) {
-      if (!dateValue) return "";
-      const date = new Date(dateValue);
+    function formatTime(value) {
+      if (!value) return "";
+      const date = new Date(value);
       if (Number.isNaN(date.getTime())) return "";
       return date.toLocaleString([], {
-        hour: "2-digit",
-        minute: "2-digit",
         day: "2-digit",
-        month: "short"
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit"
       });
     }
 
-    function createElement(tag, className, text) {
-      const element = document.createElement(tag);
-      if (className) element.className = className;
-      if (text !== undefined) element.textContent = text;
-      return element;
+    function validUsername(name) {
+      return /^[a-zA-Z0-9_]{3,24}$/.test(name);
     }
 
-    function clearElement(element) {
-      element.replaceChildren();
-    }
-
-    function showError(context, error) {
-      console.error(context, error);
-      return error?.message || "Ha ocurrido un error inesperado.";
-    }
-
-    // ==========================================
-    // INICIO
-    // ==========================================
+    // ==============================================
+    // ARRANQUE
+    // ==============================================
     async function init() {
       if (!window.supabase || !window.supabase.createClient) {
-        setStatus(
+        status(
           "authStatus",
-          "No se pudo cargar Supabase. Comprueba tu conexión a Internet.",
+          "No se ha cargado Supabase. Comprueba tu conexión y vuelve a cargar la página.",
           "error"
         );
         return;
       }
 
-      if (
-        !SUPABASE_URL.startsWith("https://") ||
-        !SUPABASE_KEY.startsWith("sb_publishable_")
-      ) {
-        setStatus("authStatus", "Revisa la configuración de Supabase.", "error");
-        return;
-      }
-
       try {
-        supabaseClient = window.supabase.createClient(
-          SUPABASE_URL,
-          SUPABASE_KEY
-        );
+        db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const { data, error } = await supabaseClient.auth.getSession();
-
+        const { data, error } = await db.auth.getSession();
         if (error) throw error;
 
         if (data.session?.user) {
           currentUser = data.session.user;
           await enterApp();
-        } else {
-          showAuth();
         }
 
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-          // Evita ejecutar operaciones complejas directamente en el callback
-          // de autenticación, que puede ejecutarse dentro de un bloqueo interno.
-          setTimeout(async () => {
-            if (session?.user) {
-              currentUser = session.user;
-              if ($("appScreen").classList.contains("hidden")) {
-                try {
-                  await enterApp();
-                } catch (error) {
-                  setStatus("authStatus", showError("Entrar", error), "error");
-                }
-              }
-            } else if (event === "SIGNED_OUT") {
+        db.auth.onAuthStateChange((event) => {
+          if (event === "SIGNED_OUT") {
+            setTimeout(() => {
               cleanupRealtime();
-              resetAppState();
+              resetState();
               showAuth();
-            }
-          }, 0);
+            }, 0);
+          }
         });
-
       } catch (error) {
-        setStatus("authStatus", showError("Inicializar Supabase", error), "error");
+        status("authStatus", errorText(error), "error");
       }
     }
 
-    // ==========================================
+    // ==============================================
     // REGISTRO
-    // ==========================================
+    // ==============================================
     $("registerBtn").addEventListener("click", async () => {
-      if (!supabaseClient) return;
+      if (!db) return;
+
+      $("usernameField").classList.remove("hidden");
 
       const email = $("email").value.trim();
       const password = $("password").value;
       const username = $("username").value.trim();
 
-      $("usernameGroup").classList.remove("hidden");
-
       if (!email || !password || !username) {
-        setStatus(
-          "authStatus",
-          "Introduce correo, contraseña y nombre de usuario.",
-          "error"
-        );
+        status("authStatus", "Completa el correo, la contraseña y el usuario.", "error");
         return;
       }
 
       if (password.length < 6) {
-        setStatus(
-          "authStatus",
-          "La contraseña debe tener al menos 6 caracteres.",
-          "error"
-        );
+        status("authStatus", "La contraseña debe tener al menos 6 caracteres.", "error");
         return;
       }
 
-      if (!/^[a-zA-Z0-9_]{3,24}$/.test(username)) {
-        setStatus(
+      if (!validUsername(username)) {
+        status(
           "authStatus",
-          "El usuario debe tener entre 3 y 24 caracteres: letras, números o guion bajo.",
+          "El usuario debe tener entre 3 y 24 caracteres y solo letras, números o guion bajo.",
           "error"
         );
         return;
       }
 
       $("registerBtn").disabled = true;
-      setStatus("authStatus", "Creando cuenta...");
+      status("authStatus", "Creando cuenta...");
 
       try {
-        const { data, error } = await supabaseClient.auth.signUp({
+        const { data, error } = await db.auth.signUp({
           email,
           password,
-          options: {
-            data: {
-              username: username
-            }
-          }
+          options: { data: { username } }
         });
 
         if (error) throw error;
+        if (!data.user) throw new Error("No se ha podido crear la cuenta.");
 
-        if (!data.user) {
-          throw new Error("Supabase no devolvió los datos de la cuenta.");
-        }
-
-        // Si la confirmación por correo está desactivada, puede existir sesión.
-        // Si está activada, el perfil se creará al iniciar sesión después.
         if (data.session) {
           currentUser = data.user;
           await ensureProfile(username);
           await enterApp();
-          setStatus("chatStatus", "Cuenta creada correctamente.", "success");
         } else {
-          setStatus(
+          status(
             "authStatus",
-            "Cuenta creada. Si la confirmación por correo está activada, confirma tu email y después inicia sesión.",
+            "Cuenta creada. Confirma tu correo si Supabase te lo solicita y después inicia sesión.",
             "success"
           );
-          $("usernameGroup").classList.add("hidden");
         }
-
       } catch (error) {
-        setStatus("authStatus", showError("Registro", error), "error");
+        status("authStatus", errorText(error), "error");
       } finally {
         $("registerBtn").disabled = false;
       }
     });
 
-    // ==========================================
+    // ==============================================
     // INICIO DE SESIÓN
-    // ==========================================
+    // ==============================================
     $("loginBtn").addEventListener("click", async () => {
-      if (!supabaseClient) return;
+      if (!db) return;
 
       const email = $("email").value.trim();
       const password = $("password").value;
 
       if (!email || !password) {
-        setStatus("authStatus", "Introduce tu correo y contraseña.", "error");
+        status("authStatus", "Introduce tu correo y contraseña.", "error");
         return;
       }
 
       $("loginBtn").disabled = true;
-      setStatus("authStatus", "Iniciando sesión...");
+      status("authStatus", "Iniciando sesión...");
 
       try {
-        const { data, error } = await supabaseClient.auth.signInWithPassword({
+        const { data, error } = await db.auth.signInWithPassword({
           email,
           password
         });
@@ -724,32 +532,25 @@
 
         currentUser = data.user;
         await enterApp();
-
+        status("authStatus", "");
       } catch (error) {
-        setStatus("authStatus", showError("Inicio de sesión", error), "error");
+        status("authStatus", errorText(error), "error");
       } finally {
         $("loginBtn").disabled = false;
       }
     });
 
-    // Muestra el campo de usuario al escribir en él o al pulsar Crear cuenta.
-    $("username").addEventListener("input", () => {
-      $("usernameGroup").classList.remove("hidden");
-    });
-
-    // ==========================================
+    // ==============================================
     // PERFIL
-    // ==========================================
+    // ==============================================
     async function ensureProfile(preferredUsername = "") {
-      if (!currentUser) throw new Error("No hay un usuario autenticado.");
-
-      const { data: existing, error: readError } = await supabaseClient
+      const { data: existing, error } = await db
         .from("profiles")
         .select("id, username")
         .eq("id", currentUser.id)
         .maybeSingle();
 
-      if (readError) throw readError;
+      if (error) throw error;
 
       if (existing) {
         currentProfile = existing;
@@ -759,8 +560,8 @@
       let username =
         preferredUsername ||
         currentUser.user_metadata?.username ||
-        (currentUser.email ? currentUser.email.split("@")[0] : "") ||
-        ("usuario_" + currentUser.id.slice(0, 8));
+        currentUser.email?.split("@")[0] ||
+        ("user_" + currentUser.id.slice(0, 8));
 
       username = username.replace(/[^a-zA-Z0-9_]/g, "_").slice(0, 24);
 
@@ -768,20 +569,16 @@
         username = "user_" + currentUser.id.slice(0, 8);
       }
 
-      const { data: created, error: insertError } = await supabaseClient
+      const { data: created, error: insertError } = await db
         .from("profiles")
-        .insert({
-          id: currentUser.id,
-          username
-        })
+        .insert({ id: currentUser.id, username })
         .select("id, username")
         .single();
 
       if (insertError) {
-        // Si el nombre está ocupado, no inventamos otro silenciosamente.
         if (insertError.code === "23505") {
           throw new Error(
-            "Ese nombre de usuario ya está ocupado. Regístrate con otro nombre o revisa tu perfil en Supabase."
+            "Ese nombre de usuario ya existe. Contacta con el administrador para cambiarlo."
           );
         }
         throw insertError;
@@ -792,86 +589,75 @@
     }
 
     async function enterApp() {
-      if (!currentUser) return;
-
       const profile = await ensureProfile();
 
       $("myUsername").textContent = "@" + profile.username;
       $("myEmail").textContent = currentUser.email || "";
-
       showApp();
 
-      await Promise.all([
-        loadRequests(),
-        loadFriends()
-      ]);
-
-      subscribeToFriendRequests();
+      await Promise.all([loadRequests(), loadFriends()]);
+      subscribeToRequests();
     }
 
-    // ==========================================
+    // ==============================================
     // CERRAR SESIÓN
-    // ==========================================
+    // ==============================================
     $("logoutBtn").addEventListener("click", async () => {
-      if (!supabaseClient) return;
+      if (!db) return;
 
       $("logoutBtn").disabled = true;
 
       try {
         cleanupRealtime();
-
-        const { error } = await supabaseClient.auth.signOut();
+        const { error } = await db.auth.signOut();
         if (error) throw error;
-
-        resetAppState();
+        resetState();
         showAuth();
-        setStatus("authStatus", "Has cerrado sesión.", "success");
-
       } catch (error) {
-        setStatus("chatStatus", showError("Cerrar sesión", error), "error");
+        status("chatStatus", errorText(error), "error");
       } finally {
         $("logoutBtn").disabled = false;
       }
     });
 
-    function resetAppState() {
+    function resetState() {
       currentUser = null;
       currentProfile = null;
       activeConversationId = null;
       activeFriendId = null;
-      activeFriendUsername = null;
-
-      $("messages").replaceChildren();
-      $("searchResults").replaceChildren();
-      $("requestsList").replaceChildren();
-      $("friendsList").replaceChildren();
+      activeFriendUsername = "";
 
       $("messageInput").disabled = true;
       $("sendBtn").disabled = true;
       $("chatTitle").textContent = "Tus conversaciones";
       $("chatSubtitle").textContent = "Selecciona un amigo para empezar a hablar.";
+
+      clear($("messages"));
+      clear($("friendsList"));
+      clear($("requestsList"));
+      clear($("searchResults"));
     }
 
     function cleanupRealtime() {
-      if (!supabaseClient) return;
+      if (!db) return;
 
       if (messagesChannel) {
-        supabaseClient.removeChannel(messagesChannel);
+        db.removeChannel(messagesChannel);
         messagesChannel = null;
       }
 
-      if (refreshChannel) {
-        supabaseClient.removeChannel(refreshChannel);
-        refreshChannel = null;
+      if (requestsChannel) {
+        db.removeChannel(requestsChannel);
+        requestsChannel = null;
       }
     }
 
-    // ==========================================
+    // ==============================================
     // BUSCAR USUARIOS
-    // ==========================================
+    // ==============================================
     $("searchBtn").addEventListener("click", searchUsers);
 
-    $("searchInput").addEventListener("keydown", (event) => {
+    $("searchInput").addEventListener("keydown", event => {
       if (event.key === "Enter") {
         event.preventDefault();
         searchUsers();
@@ -882,99 +668,91 @@
       if (!currentUser) return;
 
       const term = $("searchInput").value.trim();
-
-      clearElement($("searchResults"));
-      setStatus("searchStatus", "");
+      clear($("searchResults"));
+      status("searchStatus");
 
       if (term.length < 2) {
-        setStatus("searchStatus", "Escribe al menos 2 caracteres.", "error");
+        status("searchStatus", "Escribe al menos 2 caracteres.", "error");
         return;
       }
 
       $("searchBtn").disabled = true;
 
       try {
-        const { data, error } = await supabaseClient
+        const safeTerm = term.replace(/[,%_()]/g, "");
+
+        const { data, error } = await db
           .from("profiles")
           .select("id, username")
-          .ilike("username", "%" + term.replace(/[%_]/g, "") + "%")
+          .ilike("username", "%" + safeTerm + "%")
           .neq("id", currentUser.id)
           .order("username")
           .limit(20);
 
         if (error) throw error;
 
-        if (!data || data.length === 0) {
-          setStatus("searchStatus", "No se encontraron usuarios.");
+        if (!data?.length) {
+          status("searchStatus", "No se encontraron usuarios.");
           return;
         }
 
         for (const profile of data) {
-          const item = createElement("div", "list-item");
-          item.appendChild(createElement("strong", "", "@" + profile.username));
+          const item = element("div", "item");
+          item.appendChild(element("strong", "", "@" + profile.username));
 
-          const button = createElement("button", "", "Añadir amigo");
+          const button = element("button", "", "Añadir amigo");
           button.addEventListener("click", () => sendFriendRequest(profile));
 
-          const actions = createElement("div", "item-actions");
+          const actions = element("div", "actions");
           actions.appendChild(button);
           item.appendChild(actions);
-
           $("searchResults").appendChild(item);
         }
-
       } catch (error) {
-        setStatus("searchStatus", showError("Buscar usuarios", error), "error");
+        status("searchStatus", errorText(error), "error");
       } finally {
         $("searchBtn").disabled = false;
       }
     }
 
-    // ==========================================
+    // ==============================================
     // SOLICITUDES DE AMISTAD
-    // ==========================================
+    // ==============================================
     async function sendFriendRequest(profile) {
-      if (!currentUser) return;
-
       try {
-        const { data: existing, error: existingError } = await supabaseClient
+        const { data: existing, error } = await db
           .from("friend_requests")
           .select("id, from_user, to_user, status")
           .or(
-            "and(from_user.eq." + currentUser.id +
-            ",to_user.eq." + profile.id + ")," +
-            "and(from_user.eq." + profile.id +
-            ",to_user.eq." + currentUser.id + ")"
+            "and(from_user.eq." + currentUser.id + ",to_user.eq." + profile.id + ")," +
+            "and(from_user.eq." + profile.id + ",to_user.eq." + currentUser.id + ")"
           );
 
-        if (existingError) throw existingError;
+        if (error) throw error;
 
-        if (existing?.some((r) => r.status === "accepted")) {
-          setStatus("searchStatus", "Ya sois amigos.", "success");
+        if (existing?.some(r => r.status === "accepted")) {
+          status("searchStatus", "Ya sois amigos.", "success");
           return;
         }
 
-        if (existing?.some((r) =>
-          r.status === "pending" &&
-          r.from_user === currentUser.id
+        if (existing?.some(r =>
+          r.status === "pending" && r.from_user === currentUser.id
         )) {
-          setStatus("searchStatus", "Ya has enviado una solicitud a esa persona.");
+          status("searchStatus", "Ya has enviado una solicitud.");
           return;
         }
 
-        // Si ya hay una solicitud pendiente recibida, acepta esa solicitud.
-        const incoming = existing?.find((r) =>
-          r.status === "pending" &&
-          r.to_user === currentUser.id
+        const incoming = existing?.find(r =>
+          r.status === "pending" && r.to_user === currentUser.id
         );
 
         if (incoming) {
-          await acceptFriendRequest(incoming, profile.username);
-          setStatus("searchStatus", "Solicitud aceptada.", "success");
+          await acceptRequest(incoming);
+          status("searchStatus", "Solicitud aceptada.", "success");
           return;
         }
 
-        const { error } = await supabaseClient
+        const { error: insertError } = await db
           .from("friend_requests")
           .insert({
             from_user: currentUser.id,
@@ -982,22 +760,21 @@
             status: "pending"
           });
 
-        if (error) throw error;
+        if (insertError) throw insertError;
 
-        setStatus("searchStatus", "Solicitud enviada a @" + profile.username, "success");
+        status("searchStatus", "Solicitud enviada a @" + profile.username, "success");
         await loadRequests();
-
       } catch (error) {
-        setStatus("searchStatus", showError("Enviar solicitud", error), "error");
+        status("searchStatus", errorText(error), "error");
       }
     }
 
     async function loadRequests() {
       if (!currentUser) return;
 
-      clearElement($("requestsList"));
+      clear($("requestsList"));
 
-      const { data, error } = await supabaseClient
+      const { data, error } = await db
         .from("friend_requests")
         .select("id, from_user, to_user, status, created_at")
         .eq("to_user", currentUser.id)
@@ -1006,118 +783,112 @@
 
       if (error) {
         $("requestsList").appendChild(
-          createElement("div", "muted", "No se pudieron cargar las solicitudes.")
+          element("div", "muted", "Error al cargar solicitudes: " + error.message)
         );
-        console.error("Cargar solicitudes", error);
         return;
       }
 
       if (!data?.length) {
         $("requestsList").appendChild(
-          createElement("div", "muted", "No tienes solicitudes pendientes.")
+          element("div", "muted", "No tienes solicitudes pendientes.")
         );
         return;
       }
 
-      const senderIds = [...new Set(data.map((r) => r.from_user))];
+      const ids = [...new Set(data.map(r => r.from_user))];
 
-      const { data: profiles, error: profileError } = await supabaseClient
+      const { data: profiles, error: profileError } = await db
         .from("profiles")
         .select("id, username")
-        .in("id", senderIds);
+        .in("id", ids);
 
-      if (profileError) {
-        console.error("Cargar perfiles de solicitudes", profileError);
-      }
+      if (profileError) throw profileError;
 
-      const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+      const map = new Map((profiles || []).map(p => [p.id, p]));
 
       for (const request of data) {
-        const profile = profileMap.get(request.from_user);
-        const username = profile?.username || "Usuario";
+        const username = map.get(request.from_user)?.username || "Usuario";
+        const item = element("div", "item");
+        item.appendChild(element("strong", "", "@" + username));
 
-        const item = createElement("div", "list-item");
-        item.appendChild(createElement("strong", "", "@" + username));
-
-        const actions = createElement("div", "item-actions");
-        const acceptButton = createElement("button", "", "Aceptar");
-
-        acceptButton.addEventListener("click", async () => {
-          acceptButton.disabled = true;
-
+        const button = element("button", "", "Aceptar");
+        button.addEventListener("click", async () => {
+          button.disabled = true;
           try {
-            await acceptFriendRequest(request, username);
+            await acceptRequest(request);
             await loadRequests();
             await loadFriends();
           } catch (error) {
-            setStatus("chatStatus", showError("Aceptar solicitud", error), "error");
-            acceptButton.disabled = false;
+            status("chatStatus", errorText(error), "error");
+            button.disabled = false;
           }
         });
 
-        actions.appendChild(acceptButton);
+        const actions = element("div", "actions");
+        actions.appendChild(button);
         item.appendChild(actions);
         $("requestsList").appendChild(item);
       }
     }
 
-    async function acceptFriendRequest(request, username) {
-      if (!currentUser) return;
-
-      const { error: updateError } = await supabaseClient
+    async function acceptRequest(request) {
+      // Solo el destinatario debe poder aceptar solicitudes; RLS debe verificarlo.
+      const { data: updated, error: updateError } = await db
         .from("friend_requests")
         .update({ status: "accepted" })
         .eq("id", request.id)
         .eq("to_user", currentUser.id)
-        .eq("status", "pending");
+        .eq("status", "pending")
+        .select("id")
+        .maybeSingle();
 
       if (updateError) throw updateError;
+      if (!updated) throw new Error("La solicitud ya no está pendiente.");
 
-      // Crear la conversación y añadir a ambos usuarios.
-      // Las políticas RLS deben permitir estas operaciones a los amigos.
-      const { data: conversation, error: conversationError } =
-        await supabaseClient
-          .from("conversations")
-          .insert({ created_by: currentUser.id })
-          .select("id")
-          .single();
+      const { data: conversation, error: convError } = await db
+        .from("conversations")
+        .insert({ created_by: currentUser.id })
+        .select("id")
+        .single();
 
-      if (conversationError) throw conversationError;
+      if (convError) throw convError;
 
-      const { error: membersError } = await supabaseClient
+      const { error: membersError } = await db
         .from("conversation_members")
         .insert([
-          {
-            conversation_id: conversation.id,
-            user_id: currentUser.id
-          },
-          {
-            conversation_id: conversation.id,
-            user_id: request.from_user
-          }
+          { conversation_id: conversation.id, user_id: currentUser.id },
+          { conversation_id: conversation.id, user_id: request.from_user }
         ]);
 
       if (membersError) {
-        console.error("No se pudieron crear los miembros de la conversación", membersError);
         throw new Error(
-          "La solicitud se aceptó, pero no se pudo crear el chat. Revisa las políticas RLS de conversation_members."
+          "Solicitud aceptada, pero falló la creación del chat. Comprueba las políticas RLS de conversation_members."
         );
       }
 
-      setStatus("chatStatus", "Ahora sois amigos. Ya podéis chatear.", "success");
       await loadFriends();
-      await openConversation(request.from_user, username);
+
+      const { data: friend } = await db
+        .from("profiles")
+        .select("username")
+        .eq("id", request.from_user)
+        .maybeSingle();
+
+      await openConversation(
+        request.from_user,
+        friend?.username || "Amigo"
+      );
     }
 
-    // ==========================================
-    // LISTA DE AMIGOS
-    // ==========================================
+    // ==============================================
+    // AMIGOS
+    // ==============================================
     async function loadFriends() {
       if (!currentUser) return;
 
-      clearElement($("friendsList"));
+      clear($("friendsList"));
 
-      const { data: requests, error } = await supabaseClient
+      const { data: requests, error } = await db
         .from("friend_requests")
         .select("from_user, to_user")
         .eq("status", "accepted")
@@ -1127,113 +898,112 @@
         );
 
       if (error) {
-        console.error("Cargar amigos", error);
         $("friendsList").appendChild(
-          createElement("div", "muted", "No se pudieron cargar los amigos.")
+          element("div", "muted", "Error al cargar amigos: " + error.message)
         );
         return;
       }
 
-      const friendIds = [...new Set((requests || []).map((r) =>
+      const ids = [...new Set((requests || []).map(r =>
         r.from_user === currentUser.id ? r.to_user : r.from_user
       ))];
 
-      if (!friendIds.length) {
+      if (!ids.length) {
         $("friendsList").appendChild(
-          createElement("div", "muted", "Todavía no tienes amigos. Busca un usuario arriba.")
+          element("div", "muted", "Todavía no tienes amigos.")
         );
         return;
       }
 
-      const { data: profiles, error: profilesError } = await supabaseClient
+      const { data: profiles, error: profileError } = await db
         .from("profiles")
         .select("id, username")
-        .in("id", friendIds)
+        .in("id", ids)
         .order("username");
 
-      if (profilesError) {
-        console.error("Cargar perfiles de amigos", profilesError);
-        return;
-      }
+      if (profileError) throw profileError;
 
       for (const profile of profiles || []) {
-        const item = createElement("div", "list-item");
-        item.appendChild(createElement("strong", "", "@" + profile.username));
+        const item = element("div", "item");
+        item.appendChild(element("strong", "", "@" + profile.username));
 
-        const button = createElement("button", "secondary-button", "Abrir chat");
-        button.addEventListener("click", () => {
-          openConversation(profile.id, profile.username);
-        });
+        const button = element("button", "secondary", "Abrir chat");
+        button.addEventListener("click", () =>
+          openConversation(profile.id, profile.username)
+        );
 
-        const actions = createElement("div", "item-actions");
+        const actions = element("div", "actions");
         actions.appendChild(button);
         item.appendChild(actions);
-
         $("friendsList").appendChild(item);
       }
     }
 
-    // ==========================================
-    // ABRIR O CREAR CONVERSACIÓN
-    // ==========================================
+    // ==============================================
+    // ABRIR CONVERSACIÓN
+    // ==============================================
     async function openConversation(friendId, friendUsername) {
       if (!currentUser || friendId === currentUser.id) return;
 
-      setStatus("chatStatus", "Abriendo conversación...");
+      status("chatStatus", "Abriendo chat...");
 
       try {
-        const { data: mine, error: mineError } = await supabaseClient
+        // Comprobar amistad aceptada antes de abrir o crear conversación.
+        const { data: friendship, error: friendError } = await db
+          .from("friend_requests")
+          .select("id")
+          .eq("status", "accepted")
+          .or(
+            "and(from_user.eq." + currentUser.id + ",to_user.eq." + friendId + ")," +
+            "and(from_user.eq." + friendId + ",to_user.eq." + currentUser.id + ")"
+          )
+          .limit(1);
+
+        if (friendError) throw friendError;
+        if (!friendship?.length) {
+          throw new Error("Solo puedes conversar con amigos que hayan aceptado tu solicitud.");
+        }
+
+        const { data: myMemberships, error: myError } = await db
           .from("conversation_members")
           .select("conversation_id")
           .eq("user_id", currentUser.id);
 
-        if (mineError) throw mineError;
+        if (myError) throw myError;
 
-        const myConversationIds = (mine || []).map((row) => row.conversation_id);
-
+        const myIds = (myMemberships || []).map(r => r.conversation_id);
         let conversationId = null;
 
-        if (myConversationIds.length) {
-          const { data: shared, error: sharedError } = await supabaseClient
+        if (myIds.length) {
+          const { data: shared, error: sharedError } = await db
             .from("conversation_members")
             .select("conversation_id")
             .eq("user_id", friendId)
-            .in("conversation_id", myConversationIds);
+            .in("conversation_id", myIds)
+            .limit(1);
 
           if (sharedError) throw sharedError;
-
-          if (shared?.length) {
-            conversationId = shared[0].conversation_id;
-          }
+          if (shared?.length) conversationId = shared[0].conversation_id;
         }
 
-        // Si aún no hay conversación compartida, crearla.
         if (!conversationId) {
-          const { data: newConversation, error: createError } =
-            await supabaseClient
-              .from("conversations")
-              .insert({ created_by: currentUser.id })
-              .select("id")
-              .single();
+          const { data: conversation, error: createError } = await db
+            .from("conversations")
+            .insert({ created_by: currentUser.id })
+            .select("id")
+            .single();
 
           if (createError) throw createError;
 
-          const { error: membersError } = await supabaseClient
+          const { error: membersError } = await db
             .from("conversation_members")
             .insert([
-              {
-                conversation_id: newConversation.id,
-                user_id: currentUser.id
-              },
-              {
-                conversation_id: newConversation.id,
-                user_id: friendId
-              }
+              { conversation_id: conversation.id, user_id: currentUser.id },
+              { conversation_id: conversation.id, user_id: friendId }
             ]);
 
           if (membersError) throw membersError;
-
-          conversationId = newConversation.id;
+          conversationId = conversation.id;
         }
 
         activeConversationId = conversationId;
@@ -1244,28 +1014,26 @@
         $("chatSubtitle").textContent = "Conversación privada";
         $("messageInput").disabled = false;
         $("sendBtn").disabled = false;
-        $("messageInput").focus();
 
         await loadMessages();
         subscribeToMessages(conversationId);
-
-        setStatus("chatStatus", "");
-
+        status("chatStatus");
+        $("messageInput").focus();
       } catch (error) {
-        setStatus("chatStatus", showError("Abrir conversación", error), "error");
+        status("chatStatus", errorText(error), "error");
       }
     }
 
-    // ==========================================
-    // MENSAJES
-    // ==========================================
+    // ==============================================
+    // CARGAR Y MOSTRAR MENSAJES
+    // ==============================================
     async function loadMessages() {
-      if (!activeConversationId || loadingMessages) return;
+      if (!activeConversationId || busyLoadingMessages) return;
 
-      loadingMessages = true;
+      busyLoadingMessages = true;
 
       try {
-        const { data, error } = await supabaseClient
+        const { data, error } = await db
           .from("messages")
           .select("id, conversation_id, sender_id, content, created_at")
           .eq("conversation_id", activeConversationId)
@@ -1273,54 +1041,46 @@
           .limit(200);
 
         if (error) throw error;
-
         renderMessages(data || []);
-
       } catch (error) {
-        setStatus("chatStatus", showError("Cargar mensajes", error), "error");
+        status("chatStatus", errorText(error), "error");
       } finally {
-        loadingMessages = false;
+        busyLoadingMessages = false;
       }
     }
 
     function renderMessages(messages) {
       const container = $("messages");
-      clearElement(container);
+      clear(container);
 
       if (!messages.length) {
         container.appendChild(
-          createElement("div", "empty-state", "No hay mensajes todavía. ¡Escribe el primero!")
+          element("div", "empty", "No hay mensajes todavía. ¡Escribe el primero!")
         );
         return;
       }
 
-      const shouldScroll =
-        container.scrollHeight - container.scrollTop - container.clientHeight < 100;
-
       for (const message of messages) {
-        const mine = message.sender_id === currentUser?.id;
-        const bubble = createElement("div", "message" + (mine ? " mine" : ""));
+        const mine = message.sender_id === currentUser.id;
+        const bubble = element("div", "bubble" + (mine ? " mine" : ""));
 
-        if (!mine) {
-          bubble.appendChild(
-            createElement("div", "message-author", "@" + (activeFriendUsername || "Amigo"))
-          );
-        }
-
-        bubble.appendChild(createElement("div", "", message.content));
         bubble.appendChild(
-          createElement("div", "message-time", formatTime(message.created_at))
+          element(
+            "div",
+            "bubble-author",
+            mine ? "Tú" : "@" + activeFriendUsername
+          )
         );
 
+        bubble.appendChild(element("div", "", message.content));
+        bubble.appendChild(element("div", "bubble-time", formatTime(message.created_at)));
         container.appendChild(bubble);
       }
 
-      if (shouldScroll || messages.length) {
-        container.scrollTop = container.scrollHeight;
-      }
+      container.scrollTop = container.scrollHeight;
     }
 
-    $("messageForm").addEventListener("submit", async (event) => {
+    $("messageForm").addEventListener("submit", async event => {
       event.preventDefault();
 
       if (!currentUser || !activeConversationId) return;
@@ -1331,7 +1091,7 @@
       $("sendBtn").disabled = true;
 
       try {
-        const { error } = await supabaseClient
+        const { error } = await db
           .from("messages")
           .insert({
             conversation_id: activeConversationId,
@@ -1343,25 +1103,25 @@
 
         $("messageInput").value = "";
         await loadMessages();
-
+        status("chatStatus");
       } catch (error) {
-        setStatus("chatStatus", showError("Enviar mensaje", error), "error");
+        status("chatStatus", errorText(error), "error");
       } finally {
         $("sendBtn").disabled = !activeConversationId;
         $("messageInput").focus();
       }
     });
 
-    // ==========================================
-    // ACTUALIZACIONES EN TIEMPO REAL
-    // ==========================================
+    // ==============================================
+    // SUPABASE REALTIME
+    // ==============================================
     function subscribeToMessages(conversationId) {
       if (messagesChannel) {
-        supabaseClient.removeChannel(messagesChannel);
+        db.removeChannel(messagesChannel);
         messagesChannel = null;
       }
 
-      messagesChannel = supabaseClient
+      messagesChannel = db
         .channel("messages-" + conversationId)
         .on(
           "postgres_changes",
@@ -1371,29 +1131,27 @@
             table: "messages",
             filter: "conversation_id=eq." + conversationId
           },
-          async () => {
-            await loadMessages();
-          }
+          () => loadMessages()
         )
-        .subscribe((status) => {
-          if (status === "CHANNEL_ERROR") {
-            setStatus(
+        .subscribe(state => {
+          if (state === "CHANNEL_ERROR") {
+            status(
               "chatStatus",
-              "No se pudo activar el tiempo real. Comprueba la configuración de Realtime en Supabase.",
+              "No se pudo activar el tiempo real. Comprueba Realtime en Supabase.",
               "error"
             );
           }
         });
     }
 
-    function subscribeToFriendRequests() {
-      if (refreshChannel) {
-        supabaseClient.removeChannel(refreshChannel);
-        refreshChannel = null;
+    function subscribeToRequests() {
+      if (requestsChannel) {
+        db.removeChannel(requestsChannel);
+        requestsChannel = null;
       }
 
-      refreshChannel = supabaseClient
-        .channel("friend-requests-" + currentUser.id)
+      requestsChannel = db
+        .channel("requests-" + currentUser.id)
         .on(
           "postgres_changes",
           {
@@ -1410,7 +1168,7 @@
         .subscribe();
     }
 
-    // Iniciar la aplicación
+    // Arrancar la aplicación.
     init();
   </script>
 </body>
