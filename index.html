@@ -1560,7 +1560,14 @@
         return;
       }
 
-      const { data: conversations, error: conversationsError } = await supabaseClient
+     const { data: { session }, error: sessionError } =
+  await supabase.auth.getSession();
+
+console.log('Sesión de Supabase:', {
+  haySesion: !!session,
+  usuarioId: session?.user?.id,
+  error: sessionError?.message
+});
         .from("conversations")
         .select("*")
         .in("id", ids)
