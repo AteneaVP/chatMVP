@@ -17,6 +17,7 @@
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+document.addEventListener("DOMContentLoaded", () => {
 // 1) Sustituye estos valores por los de tu proyecto Supabase.
 // Supabase Dashboard > Project Settings > API. Usa la clave publishable/anon, NUNCA service_role.
 const SUPABASE_URL = "https://wocxewfajggexplhafgj.supabase.co";
@@ -294,6 +295,7 @@ db?.auth.onAuthStateChange((event,session)=>{
   if(session?.user){try{await enterApp(session.user);}catch(err){showApp(false);setAuthMessage(err.message);}}
 })();
 
+});
   </script>
 </head>
 <body>
@@ -379,9 +381,5 @@ db?.auth.onAuthStateChange((event,session)=>{
       <div class="modal-actions"><button class="secondary" value="cancel">Cancelar</button><button id="modalConfirm" class="primary" value="confirm">Continuar</button></div>
     </form>
   </dialog>
-</body>
-</html>
-    });
-  </script>
 </body>
 </html>
