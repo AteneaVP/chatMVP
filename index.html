@@ -19,8 +19,8 @@
   <script>
 // 1) Sustituye estos valores por los de tu proyecto Supabase.
 // Supabase Dashboard > Project Settings > API. Usa la clave publishable/anon, NUNCA service_role.
-const SUPABASE_URL = "https://TU-PROYECTO.supabase.co";
-const SUPABASE_ANON_KEY = "TU_CLAVE_PUBLICA_ANON";
+const SUPABASE_URL = "https://wocxewfajggexplhafgj.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_eJp9UL0PEOavUzmWlqL9dw_gqsG7c-A";
 
 const configured = !SUPABASE_URL.includes("TU-PROYECTO") && !SUPABASE_ANON_KEY.includes("TU_CLAVE");
 const db = configured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
