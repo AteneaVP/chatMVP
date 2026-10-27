@@ -1681,26 +1681,35 @@ conversationRecords = conversations || [];
           }
         }
 
-        if (!existingConversationId) {
-          const { data: newConversation, error: createError } = await supabaseClient
-            .from("conversations")
-            .insert({})
-            .select("id")
-            .single();
+       if (!existingConversationId) {
+  const { data: { user }, error: authError } =
+    await supabaseClient.auth.getUser();
 
-          if (createError) throw createError;
+  if (authError) throw authError;
 
-          const { error: membersError } = await supabaseClient
-            .from("conversation_members")
-            .insert([
-              { conversation_id: newConversation.id, user_id: currentUser.id },
-              { conversation_id: newConversation.id, user_id: friendId }
-            ]);
+  if (!user) {
+    throw new Error("Debes iniciar sesión para abrir un chat.");
+  }
 
-          if (membersError) throw membersError;
+  const { data: newConversation, error: createError } = await supabaseClient
+    .from("conversations")
+    .insert({ created_by: user.id })
+    .select("id")
+    .single();
 
-          existingConversationId = newConversation.id;
-        }
+  if (createError) throw createError;
+
+  const { error: membersError } = await supabaseClient
+    .from("conversation_members")
+    .insert([
+      { conversation_id: newConversation.id, user_id: user.id },
+      { conversation_id: newConversation.id, user_id: friendId }
+    ]);
+
+  if (membersError) throw membersError;
+
+  existingConversationId = newConversation.id;
+}
 
         await showChat(existingConversationId, friend);
       } catch (error) {
