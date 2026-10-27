@@ -1555,27 +1555,20 @@
 
       const ids = [...new Set((memberships || []).map((row) => row.conversation_id))];
 
-      if (!ids.length) {
-        conversationRecords = [];
-        return;
-      }
+     if (!ids.length) {
+  conversationRecords = [];
+  return;
+}
 
-     const { data: { session }, error: sessionError } =
-  await supabase.auth.getSession();
+const { data: conversations, error: conversationsError } = await supabase
+  .from("conversations")
+  .select("*")
+  .in("id", ids)
+  .order("created_at", { ascending: false });
 
-console.log('Sesión de Supabase:', {
-  haySesion: !!session,
-  usuarioId: session?.user?.id,
-  error: sessionError?.message
-});
-        .from("conversations")
-        .select("*")
-        .in("id", ids)
-        .order("created_at", { ascending: false });
+if (conversationsError) throw conversationsError;
 
-      if (conversationsError) throw conversationsError;
-
-      conversationRecords = conversations || [];
+conversationRecords = conversations || [];
     }
 
     function renderFriendsList() {
