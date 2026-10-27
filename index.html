@@ -1,1206 +1,1924 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#171821">
-<title>Conecta Pro</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conecta Pro</title>
+  <meta name="theme-color" content="#111318">
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<style>
-:root {
-  --bg:#171821;
-  --panel:#20212c;
-  --panel2:#292a38;
-  --hover:#333444;
-  --text:#f4f4f8;
-  --muted:#9b9cac;
-  --accent:#7765f7;
-  --accent2:#9485ff;
-  --green:#43dba2;
-  --border:rgba(255,255,255,.07);
-}
-* {box-sizing:border-box}
-body {
-  margin:0;
-  font-family:Inter,Arial,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  height:100vh;
-  overflow:hidden;
-}
-button,input,textarea {font:inherit}
-button {cursor:pointer}
-button:disabled {opacity:.5;cursor:not-allowed}
-.hidden {display:none!important}
-.app {height:100vh;display:flex;overflow:hidden}
+  <style>
+    :root {
+      --bg: #111318;
+      --panel: #191c23;
+      --panel2: #20242d;
+      --border: #303541;
+      --text: #f2f4f8;
+      --muted: #a2a8b7;
+      --accent: #7c5cff;
+      --accent-hover: #6947f5;
+      --green: #38c98b;
+      --red: #ff647c;
+    }
 
-/* BARRA DE COMUNIDADES */
-.rail {
-  width:76px;
-  background:#14151c;
-  padding:14px 0;
-  display:flex;
-  align-items:center;
-  flex-direction:column;
-  gap:12px;
-  flex-shrink:0;
-}
-.rail-logo,.rail-btn {
-  width:48px;height:48px;border:0;
-  border-radius:17px;
-  display:grid;place-items:center;
-  color:#fff;background:#282936;
-  font-size:20px;transition:.18s;
-  position:relative;
-}
-.rail-logo {
-  background:linear-gradient(135deg,#8c6dff,#5d50df);
-  box-shadow:0 7px 25px #7765f735;
-}
-.rail-btn:hover,.rail-btn.active {
-  border-radius:14px;background:var(--accent);
-  transform:translateY(-1px);
-}
-.rail-divider {height:1px;width:32px;background:#393a48}
-.rail-spacer {flex:1}
-.rail-btn.add {color:var(--green)}
+    * {
+      box-sizing: border-box;
+    }
 
-/* PANEL LATERAL */
-.sidebar {
-  width:260px;min-width:220px;
-  background:var(--panel);
-  display:flex;flex-direction:column;
-  border-right:1px solid var(--border);
-}
-.workspace-head {
-  height:65px;padding:0 18px;
-  display:flex;align-items:center;
-  justify-content:space-between;
-  border-bottom:1px solid var(--border);
-  font-size:15px;font-weight:800;
-}
-.workspace-head button,.icon-btn {
-  background:transparent;border:0;
-  color:var(--muted);padding:8px;border-radius:8px;
-}
-.workspace-head button:hover,.icon-btn:hover {
-  color:white;background:var(--hover);
-}
-.search-wrap {padding:16px 12px 9px}
-.search {
-  display:flex;align-items:center;gap:9px;
-  background:#171821;padding:10px 12px;
-  border-radius:9px;color:var(--muted);
-}
-.search input {
-  background:transparent;border:0;outline:0;
-  width:100%;color:white;font-size:12px;
-}
-.section-title {
-  display:flex;justify-content:space-between;
-  align-items:center;padding:18px 15px 9px;
-  font-size:10px;letter-spacing:1.2px;
-  color:var(--muted);font-weight:800;
-}
-.section-title button {
-  border:0;background:transparent;color:var(--muted);
-}
-.section-title button:hover {color:white}
-.nav-item {
-  margin:2px 9px;padding:11px 12px;
-  display:flex;align-items:center;gap:11px;
-  color:var(--muted);border-radius:8px;
-  font-size:13px;cursor:pointer;
-}
-.nav-item:hover,.nav-item.active {
-  background:var(--hover);color:white;
-}
-.nav-item.active {font-weight:700}
-.nav-item i {width:17px;text-align:center}
-.conversation-list {overflow-y:auto;flex:1}
-.conversation {
-  margin:3px 9px;padding:10px;
-  border-radius:9px;display:flex;align-items:center;
-  gap:10px;cursor:pointer;color:var(--muted);
-}
-.conversation:hover,.conversation.active {
-  background:var(--hover);color:white;
-}
-.avatar {
-  flex-shrink:0;width:36px;height:36px;
-  display:grid;place-items:center;
-  border-radius:50%;background:#46405e;
-  color:#fff;font-weight:800;font-size:13px;
-  overflow:hidden;position:relative;
-}
-.avatar img {width:100%;height:100%;object-fit:cover}
-.avatar.small {width:30px;height:30px;font-size:11px}
-.avatar.large {width:78px;height:78px;font-size:25px}
-.online-dot {
-  position:absolute;width:11px;height:11px;
-  border:2px solid var(--panel);
-  border-radius:50%;background:var(--green);
-  bottom:0;right:0;
-}
-.conversation-meta {min-width:0;flex:1}
-.conversation-name {
-  font-size:12px;font-weight:700;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.conversation-preview {
-  margin-top:4px;font-size:10px;color:var(--muted);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.empty-side {padding:12px 17px;font-size:12px;color:var(--muted);line-height:1.6}
-.user-panel {
-  min-height:70px;background:#191a23;
-  border-top:1px solid var(--border);
-  display:flex;align-items:center;gap:9px;padding:12px;
-}
-.user-info {flex:1;min-width:0}
-.user-name {font-size:12px;font-weight:800;overflow:hidden;text-overflow:ellipsis}
-.user-status {font-size:10px;color:var(--green);margin-top:4px}
-.user-actions {display:flex;gap:1px}
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-/* CONTENIDO PRINCIPAL */
-.main {display:flex;flex:1;min-width:0;flex-direction:column}
-.topbar {
-  height:65px;flex-shrink:0;
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;
-  justify-content:space-between;padding:0 22px;gap:10px;
-}
-.topbar-title {display:flex;align-items:center;gap:11px;font-size:14px;font-weight:800}
-.topbar-title i {color:var(--muted)}
-.top-actions {display:flex;align-items:center;gap:5px}
-.content {flex:1;min-height:0;display:flex}
-.chat-area {flex:1;min-width:0;display:flex;flex-direction:column}
-.messages {
-  flex:1;overflow-y:auto;padding:24px 22px;
-  display:flex;flex-direction:column;gap:18px;
-}
-.welcome {
-  margin:auto;max-width:400px;text-align:center;padding:30px 15px;
-}
-.welcome-icon {
-  margin:0 auto 20px;width:80px;height:80px;
-  display:grid;place-items:center;border-radius:27px;
-  background:#7765f722;color:var(--accent2);font-size:32px;
-}
-.welcome h2 {font-size:24px;margin:0 0 10px}
-.welcome p {color:var(--muted);font-size:13px;line-height:1.7}
-.message {display:flex;gap:12px;align-items:flex-start}
-.message-body {min-width:0;flex:1}
-.message-head {display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-.message-author {font-size:12px;font-weight:800}
-.message-time {font-size:10px;color:var(--muted)}
-.message-text {
-  font-size:13px;line-height:1.7;
-  color:#e2e2ec;margin-top:5px;
-  overflow-wrap:anywhere;white-space:pre-wrap;
-}
-.message-text a {color:var(--accent2)}
-.composer-wrap {padding:8px 22px 22px}
-.composer {
-  display:flex;align-items:flex-end;gap:10px;
-  background:#292a38;border:1px solid #393a49;
-  border-radius:13px;padding:12px;
-  transition:border-color .2s;
-}
-.composer:focus-within {border-color:#7765f780}
-.composer textarea {
-  flex:1;resize:none;min-height:25px;max-height:130px;
-  background:transparent;border:0;outline:0;
-  color:white;font-size:13px;line-height:1.6;
-}
-.composer textarea::placeholder {color:#8d8ea0}
-.send-btn {
-  width:36px;height:36px;border:0;border-radius:9px;
-  color:white;background:var(--accent);
-}
-.send-btn:hover {background:var(--accent2)}
-.notice {font-size:10px;color:var(--muted);padding:8px 2px 0}
-.member-panel {
-  width:205px;flex-shrink:0;
-  background:#1b1c25;border-left:1px solid var(--border);
-  padding:19px 12px;overflow-y:auto;
-}
-.member-title {font-size:10px;color:var(--muted);font-weight:800;letter-spacing:1px;padding:5px 7px 14px}
-.member-row {display:flex;align-items:center;gap:9px;padding:8px 6px;border-radius:8px}
-.member-row:hover {background:var(--hover)}
-.member-label {font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.member-sub {font-size:10px;color:var(--muted);margin-top:3px}
-.mobile-menu {display:none}
+    button, input {
+      font: inherit;
+    }
 
-/* VENTANAS Y AUTENTICACIÓN */
-.overlay {
-  position:fixed;inset:0;background:#090a10c9;
-  display:grid;place-items:center;z-index:20;padding:18px;
-  backdrop-filter:blur(8px);
-}
-.modal {
-  width:min(440px,100%);background:#22232f;
-  border:1px solid var(--border);border-radius:18px;
-  padding:27px;box-shadow:0 20px 80px #0006;
-}
-.modal h2 {font-size:22px;margin:0 0 8px}
-.modal p {font-size:12px;color:var(--muted);line-height:1.6}
-.modal-label {display:block;font-size:11px;color:#c6c6d3;margin:15px 0 7px}
-.field {
-  width:100%;background:#171821;border:1px solid #3b3c4b;
-  border-radius:9px;padding:12px;color:white;outline:0;
-}
-.field:focus {border-color:var(--accent)}
-.primary-btn {
-  width:100%;border:0;border-radius:9px;padding:12px;
-  background:var(--accent);color:white;font-weight:800;margin-top:17px;
-}
-.primary-btn:hover {background:var(--accent2)}
-.text-btn {background:transparent;color:var(--accent2);border:0;padding:9px 0;font-size:12px}
-.modal-close {float:right;background:transparent;color:var(--muted);border:0;font-size:18px}
-.error {color:#ff8989!important;font-size:12px;margin-top:10px}
-.success {color:var(--green)!important;font-size:12px;margin-top:10px}
-.toast {
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-  background:#292a38;border:1px solid #444556;color:white;
-  padding:12px 18px;border-radius:10px;z-index:50;
-  font-size:12px;box-shadow:0 8px 35px #0005;
-}
-@media(max-width:850px) {
-  .member-panel {display:none}
-  .sidebar {width:235px;min-width:200px}
-}
-@media(max-width:600px) {
-  body,.app {height:100dvh}
-  .rail {width:56px;padding-top:10px}
-  .rail-logo,.rail-btn {width:40px;height:40px;border-radius:13px;font-size:16px}
-  .sidebar {width:calc(100vw - 56px);min-width:0;max-width:290px}
-  .main {min-width:0}
-  .app.mobile-chat .sidebar {display:none}
-  .app:not(.mobile-chat) .main {display:none}
-  .mobile-menu {display:inline-block}
-  .topbar {padding:0 12px;height:58px}
-  .topbar-title {font-size:12px}
-  .messages {padding:17px 12px}
-  .composer-wrap {padding:5px 10px 12px}
-  .message {gap:9px}
-  .message-text {font-size:12px}
-  .user-panel {padding:9px}
-  .modal {padding:22px}
-}
-</style>
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .small {
+      font-size: 12px;
+    }
+
+    .primary {
+      background: var(--accent);
+      color: white;
+      border: 0;
+      border-radius: 9px;
+      padding: 11px 15px;
+      font-weight: 700;
+      transition: background .15s;
+    }
+
+    .primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .secondary {
+      background: var(--panel2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 10px 13px;
+    }
+
+    .danger {
+      background: #49232e;
+      color: #ffb2bf;
+      border: 1px solid #713243;
+      border-radius: 8px;
+      padding: 8px 11px;
+    }
+
+    .success {
+      background: #173b30;
+      color: #9af0ce;
+      border: 1px solid #28634f;
+      border-radius: 8px;
+      padding: 8px 11px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 13px;
+      background: #11141a;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px #7c5cff22;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      color: #d5d8e1;
+      font-size: 13px;
+    }
+
+    .auth-page {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background:
+        radial-gradient(ellipse at top left, #39266a55, transparent 45%),
+        radial-gradient(ellipse at bottom right, #1b527344, transparent 40%),
+        var(--bg);
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      background: #191c23ee;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 30px;
+      box-shadow: 0 20px 70px #0005;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 23px;
+      font-weight: 850;
+      letter-spacing: -.6px;
+    }
+
+    .logo-icon {
+      width: 43px;
+      height: 43px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #9d7cff, #6041e8);
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      box-shadow: 0 8px 25px #7c5cff44;
+    }
+
+    .auth-card h1 {
+      margin: 28px 0 5px;
+      font-size: 25px;
+    }
+
+    .auth-card .muted {
+      line-height: 1.5;
+    }
+
+    .auth-card form button {
+      width: 100%;
+      margin-top: 18px;
+    }
+
+    .auth-switch {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    .link-button {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: #b9a8ff;
+      font-weight: 700;
+    }
+
+    .notice {
+      margin-top: 14px;
+      padding: 11px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      background: #252934;
+      color: #e2e5ee;
+      overflow-wrap: anywhere;
+    }
+
+    .notice.error {
+      background: #43232b;
+      color: #ffc0ca;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 290px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      background: #171920;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 20px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-header .logo {
+      font-size: 20px;
+    }
+
+    .sidebar-header .logo-icon {
+      width: 37px;
+      height: 37px;
+      font-size: 20px;
+      border-radius: 11px;
+    }
+
+    .profile-card {
+      padding: 16px;
+      display: flex;
+      gap: 11px;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #9d7cff, #4169e1);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: white;
+      font-size: 17px;
+    }
+
+    .profile-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .profile-info strong,
+    .profile-info div {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .sidebar-content {
+      padding: 14px 11px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 13px 7px 9px;
+      color: #a7adbb;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    .section-heading:first-child {
+      margin-top: 0;
+    }
+
+    .side-button {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #c8ccda;
+      border-radius: 9px;
+      text-align: left;
+      padding: 10px 11px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 3px 0;
+    }
+
+    .side-button:hover,
+    .side-button.active {
+      background: #29243d;
+      color: white;
+    }
+
+    .side-button .item-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .side-button .item-main strong {
+      display: block;
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .side-button .item-main span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 3px;
+    }
+
+    .count-badge {
+      background: var(--accent);
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      border-radius: 20px;
+      padding: 3px 7px;
+    }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .sidebar-footer button {
+      width: 100%;
+    }
+
+    .main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: 69px;
+      flex: 0 0 69px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 25px;
+      border-bottom: 1px solid var(--border);
+      background: #15171e;
+      gap: 12px;
+    }
+
+    .topbar h2 {
+      font-size: 17px;
+      margin: 0;
+    }
+
+    .main-content {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 25px;
+    }
+
+    .welcome-panel {
+      max-width: 760px;
+      margin: 35px auto;
+      text-align: center;
+      padding: 35px 20px;
+    }
+
+    .welcome-icon {
+      font-size: 52px;
+      margin-bottom: 15px;
+    }
+
+    .welcome-panel h1 {
+      font-size: clamp(25px, 4vw, 36px);
+      margin: 10px 0;
+    }
+
+    .welcome-panel p {
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 500px;
+      margin: 10px auto 22px;
+    }
+
+    .content-card {
+      width: 100%;
+      max-width: 780px;
+      margin: 0 auto;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 23px;
+    }
+
+    .content-card h2 {
+      margin: 0 0 7px;
+      font-size: 22px;
+    }
+
+    .content-card > p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 9px;
+      margin-top: 20px;
+    }
+
+    .search-row input {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .result-list {
+      display: grid;
+      gap: 9px;
+      margin-top: 18px;
+    }
+
+    .person-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #20232c;
+      border: 1px solid #303541;
+      border-radius: 11px;
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .person-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .person-details strong {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+
+    .person-details span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+      overflow-wrap: anywhere;
+    }
+
+    .person-actions {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .person-actions button {
+      font-size: 12px;
+      padding: 8px 10px;
+    }
+
+    .empty-state {
+      color: var(--muted);
+      text-align: center;
+      padding: 24px 10px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .request-tabs {
+      display: flex;
+      gap: 8px;
+      margin: 20px 0 10px;
+    }
+
+    .request-tabs button.active {
+      background: #332956;
+      border-color: #6f54cf;
+    }
+
+    .chat-view {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .chat-heading {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+    }
+
+    .chat-heading > div:last-child {
+      min-width: 0;
+    }
+
+    .chat-heading strong,
+    .chat-heading span {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+
+    .chat-heading span {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .messages {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      max-width: min(72%, 600px);
+      align-self: flex-start;
+      background: #252934;
+      border: 1px solid #343946;
+      padding: 11px 13px;
+      border-radius: 13px 13px 13px 3px;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .message.mine {
+      align-self: flex-end;
+      background: #4d38a4;
+      border-color: #6c53c8;
+      border-radius: 13px 13px 3px 13px;
+    }
+
+    .message-meta {
+      font-size: 10px;
+      color: #d4d0e7;
+      margin-top: 7px;
+      opacity: .8;
+    }
+
+    .message-composer {
+      display: flex;
+      gap: 10px;
+      padding: 17px 22px;
+      border-top: 1px solid var(--border);
+      background: #171920;
+    }
+
+    .message-composer input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .mobile-menu {
+      display: none;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: #0009;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 480px;
+      padding: 23px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      box-shadow: 0 25px 80px #0007;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-size: 21px;
+    }
+
+    .close-button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 25px;
+    }
+
+    .modal form button {
+      margin-top: 18px;
+    }
+
+    .status-line {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 8px;
+      min-height: 17px;
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+        min-height: auto;
+        height: 100vh;
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        width: 290px;
+        box-shadow: 15px 0 40px #0007;
+      }
+
+      .sidebar.mobile-open {
+        display: flex;
+      }
+
+      .main {
+        height: 100dvh;
+      }
+
+      .topbar {
+        padding: 0 14px;
+      }
+
+      .mobile-menu {
+        display: inline-block;
+      }
+
+      .main-content {
+        padding: 15px;
+      }
+
+      .messages {
+        padding: 16px 12px;
+      }
+
+      .message {
+        max-width: 88%;
+      }
+
+      .message-composer {
+        padding: 12px;
+      }
+
+      .content-card {
+        padding: 17px;
+      }
+
+      .search-row {
+        flex-direction: column;
+      }
+
+      .person-row {
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+
+      .person-actions {
+        width: 100%;
+        padding-left: 53px;
+      }
+    }
+  </style>
 </head>
 
 <body>
-<div class="app" id="app">
-
-  <aside class="rail">
-    <button class="rail-logo" title="Conecta" onclick="showHome()">
-      <i class="fa-solid fa-comments"></i>
-    </button>
-    <div class="rail-divider"></div>
-    <button class="rail-btn active" title="Mensajes" onclick="showHome()">
-      <i class="fa-solid fa-house"></i>
-    </button>
-    <button class="rail-btn" title="Amigos" onclick="openNewChat()">
-      <i class="fa-solid fa-user-group"></i>
-    </button>
-    <button class="rail-btn add" title="Nuevo chat" onclick="openNewChat()">
-      <i class="fa-solid fa-plus"></i>
-    </button>
-    <div class="rail-spacer"></div>
-    <button class="rail-btn" title="Configuración" onclick="openProfile()">
-      <i class="fa-solid fa-gear"></i>
-    </button>
-  </aside>
-
-  <aside class="sidebar">
-    <div class="workspace-head">
-      <span>Conecta <span style="color:#9384ff">PRO</span></span>
-      <button title="Nuevo mensaje" onclick="openNewChat()"><i class="fa-solid fa-pen-to-square"></i></button>
-    </div>
-
-    <div class="search-wrap">
-      <div class="search">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <input id="searchInput" placeholder="Buscar conversaciones..." oninput="filterChats()">
+  <!-- AUTENTICACIÓN -->
+  <section id="authPage" class="auth-page">
+    <div class="auth-card">
+      <div class="logo">
+        <div class="logo-icon">✦</div>
+        <span>Conecta Pro</span>
       </div>
-    </div>
 
-    <div class="nav-item active" onclick="showHome()">
-      <i class="fa-solid fa-inbox"></i> Mensajes
-    </div>
-    <div class="nav-item" onclick="openNewChat()">
-      <i class="fa-solid fa-user-plus"></i> Añadir amigo
-    </div>
+      <div id="loginPanel">
+        <h1>¡Qué bueno verte!</h1>
+        <p class="muted">Inicia sesión para hablar con tus amigos.</p>
 
-    <div class="section-title">
-      <span>MENSAJES DIRECTOS</span>
-      <button onclick="openNewChat()" title="Nueva conversación"><i class="fa-solid fa-plus"></i></button>
-    </div>
+        <form id="loginForm">
+          <label for="loginEmail">Correo electrónico</label>
+          <input id="loginEmail" type="email" autocomplete="email" required>
 
-    <div class="conversation-list" id="chatList">
-      <div class="empty-side">Inicia sesión para ver tus conversaciones.</div>
-    </div>
+          <label for="loginPassword">Contraseña</label>
+          <input id="loginPassword" type="password" autocomplete="current-password" required>
 
-    <div class="user-panel">
-      <div class="avatar" id="myAvatar">?</div>
-      <div class="user-info">
-        <div class="user-name" id="myName">Sin sesión</div>
-        <div class="user-status" id="myStatus">● Desconectado</div>
-      </div>
-      <div class="user-actions">
-        <button class="icon-btn" title="Perfil" onclick="openProfile()"><i class="fa-solid fa-gear"></i></button>
-        <button class="icon-btn" title="Cerrar sesión" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i></button>
-      </div>
-    </div>
-  </aside>
+          <button class="primary" type="submit">Iniciar sesión</button>
+        </form>
 
-  <main class="main">
-    <header class="topbar">
-      <div class="topbar-title">
-        <button class="icon-btn mobile-menu" onclick="mobileBack()"><i class="fa-solid fa-arrow-left"></i></button>
-        <i class="fa-solid fa-hashtag" id="chatIcon"></i>
-        <span id="chatTitle">Bienvenido a Conecta</span>
-      </div>
-      <div class="top-actions">
-        <button class="icon-btn" title="Añadir amigo" onclick="openNewChat()"><i class="fa-solid fa-user-plus"></i></button>
-        <button class="icon-btn" title="Buscar mensajes" onclick="focusComposer()"><i class="fa-solid fa-magnifying-glass"></i></button>
-      </div>
-    </header>
-
-    <div class="content">
-      <section class="chat-area">
-        <div class="messages" id="messages">
-          <div class="welcome">
-            <div class="welcome-icon"><i class="fa-solid fa-comments"></i></div>
-            <h2>Tu espacio. Tu gente.</h2>
-            <p>Bienvenido a Conecta Pro. Inicia sesión para hablar con tus amigos o crea una nueva conversación.</p>
-            <button class="primary-btn" style="max-width:220px" onclick="openNewChat()">+ Nueva conversación</button>
-          </div>
+        <div class="auth-switch">
+          ¿No tienes cuenta?
+          <button class="link-button" id="showSignup" type="button">Crear cuenta</button>
         </div>
+      </div>
 
-        <div class="composer-wrap">
-          <form class="composer" id="messageForm">
-            <button type="button" class="icon-btn" title="Los archivos estarán disponibles en una próxima versión" onclick="toast('La subida de archivos necesita configurar Supabase Storage.')"><i class="fa-solid fa-paperclip"></i></button>
-            <textarea id="messageInput" rows="1" maxlength="4000" placeholder="Escribe un mensaje..." disabled></textarea>
-            <button class="send-btn" id="sendBtn" title="Enviar mensaje" disabled><i class="fa-solid fa-paper-plane"></i></button>
-          </form>
-          <div class="notice">Respeta a los demás. Nunca compartas tus contraseñas.</div>
+      <div id="signupPanel" class="hidden">
+        <h1>Crea tu cuenta</h1>
+        <p class="muted">Únete a Conecta Pro y encuentra a tus amigos.</p>
+
+        <form id="signupForm">
+          <label for="signupName">Nombre para mostrar</label>
+          <input id="signupName" maxlength="40" required placeholder="Tu nombre">
+
+          <label for="signupUsername">Nombre de usuario</label>
+          <input id="signupUsername" maxlength="24" required placeholder="tunombre"
+                 pattern="[A-Za-z0-9_]{3,24}" autocomplete="username">
+          <div class="small muted">Entre 3 y 24 caracteres: letras, números y guion bajo.</div>
+
+          <label for="signupEmail">Correo electrónico</label>
+          <input id="signupEmail" type="email" autocomplete="email" required>
+
+          <label for="signupPassword">Contraseña</label>
+          <input id="signupPassword" type="password" minlength="6"
+                 autocomplete="new-password" required>
+
+          <button class="primary" type="submit">Crear cuenta</button>
+        </form>
+
+        <div class="auth-switch">
+          ¿Ya tienes cuenta?
+          <button class="link-button" id="showLogin" type="button">Iniciar sesión</button>
+        </div>
+      </div>
+
+      <div id="authNotice" class="notice hidden" role="status"></div>
+    </div>
+  </section>
+
+  <!-- APLICACIÓN -->
+  <div id="app" class="app hidden">
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">✦</div>
+          <span>Conecta Pro</span>
+        </div>
+      </div>
+
+      <div class="profile-card">
+        <div id="myAvatar" class="avatar">U</div>
+        <div class="profile-info">
+          <strong id="myDisplayName">Usuario</strong>
+          <div id="myUsername" class="muted small">@usuario</div>
+        </div>
+      </div>
+
+      <div class="sidebar-content">
+        <div class="section-heading">Principal</div>
+        <button class="side-button active" data-page="home">
+          <span>⌂</span><span class="item-main"><strong>Inicio</strong></span>
+        </button>
+        <button class="side-button" data-page="search">
+          <span>⌕</span><span class="item-main"><strong>Buscar amigos</strong></span>
+        </button>
+        <button class="side-button" data-page="requests">
+          <span>♧</span>
+          <span class="item-main"><strong>Solicitudes</strong></span>
+          <span id="requestBadge" class="count-badge hidden">0</span>
+        </button>
+
+        <div class="section-heading">
+          Amigos
+          <button class="link-button" id="refreshFriends" title="Actualizar amigos">↻</button>
+        </div>
+        <div id="friendsList"></div>
+
+        <div class="section-heading">Mensajes</div>
+        <div id="conversationsList"></div>
+      </div>
+
+      <div class="sidebar-footer">
+        <button id="profileButton" class="secondary">⚙ Mi perfil</button>
+        <button id="logoutButton" class="secondary" style="margin-top:8px">Cerrar sesión</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div style="display:flex;align-items:center;gap:12px;min-width:0">
+          <button id="mobileMenu" class="secondary mobile-menu" aria-label="Abrir menú">☰</button>
+          <h2 id="pageTitle">Inicio</h2>
+        </div>
+        <div id="connectionStatus" class="muted small">Conectando…</div>
+      </header>
+
+      <section id="mainContent" class="main-content">
+        <div class="welcome-panel">
+          <div class="welcome-icon">✦</div>
+          <h1>Bienvenido a Conecta Pro</h1>
+          <p>Encuentra amigos por su nombre de usuario, envía solicitudes y empieza conversaciones privadas.</p>
+          <button class="primary" id="homeSearchButton">Buscar amigos</button>
         </div>
       </section>
+    </main>
+  </div>
 
-      <aside class="member-panel">
-        <div class="member-title">PERSONAS</div>
-        <div id="memberList"><div class="empty-side">Abre una conversación para ver sus participantes.</div></div>
-      </aside>
-    </div>
-  </main>
-</div>
-
-<!-- AUTENTICACIÓN -->
-<div class="overlay" id="authOverlay">
-  <div class="modal">
-    <div style="text-align:center;margin-bottom:22px">
-      <div class="welcome-icon" style="width:58px;height:58px;border-radius:18px;font-size:24px"><i class="fa-solid fa-comments"></i></div>
-      <h2 id="authTitle">Entra en Conecta</h2>
-      <p id="authSubtitle">Tu comunidad empieza aquí.</p>
-    </div>
-
-    <div id="configWarning" class="error hidden"></div>
-
-    <form id="authForm">
-      <div id="nameField" class="hidden">
-        <label class="modal-label" for="authName">Nombre visible</label>
-        <input class="field" id="authName" maxlength="40" placeholder="Tu nombre">
+  <!-- MODAL PERFIL -->
+  <div id="profileModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>Mi perfil</h2>
+        <button class="close-button" data-close-modal="profileModal" aria-label="Cerrar">×</button>
       </div>
-      <label class="modal-label" for="authEmail">Correo electrónico</label>
-      <input class="field" id="authEmail" type="email" autocomplete="email" required placeholder="tu@correo.com">
-      <label class="modal-label" for="authPassword">Contraseña</label>
-      <input class="field" id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="Mínimo 6 caracteres">
-      <button class="primary-btn" id="authSubmit" type="submit">Iniciar sesión</button>
-      <div id="authMessage"></div>
-    </form>
 
-    <div style="text-align:center;margin-top:13px">
-      <button class="text-btn" id="toggleAuth" onclick="toggleAuthMode()">¿No tienes cuenta? Regístrate</button>
+      <form id="profileForm">
+        <label for="profileDisplayName">Nombre para mostrar</label>
+        <input id="profileDisplayName" maxlength="40" required>
+
+        <label for="profileUsername">Nombre de usuario</label>
+        <input id="profileUsername" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" required>
+        <div class="small muted">Puedes usar letras, números y guion bajo.</div>
+
+        <button class="primary" type="submit">Guardar cambios</button>
+        <div id="profileNotice" class="status-line"></div>
+      </form>
     </div>
   </div>
-</div>
 
-<!-- NUEVA CONVERSACIÓN -->
-<div class="overlay hidden" id="newChatOverlay">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('newChatOverlay')">✕</button>
-    <h2>Añadir amigo</h2>
-    <p>Escribe el correo electrónico con el que tu amigo se registró en Conecta.</p>
-    <form id="newChatForm">
-      <label class="modal-label" for="friendEmail">Correo de tu amigo</label>
-      <input class="field" id="friendEmail" type="email" required placeholder="amigo@correo.com">
-      <button class="primary-btn" id="newChatSubmit">Crear conversación</button>
-      <div id="newChatMessage"></div>
-    </form>
-  </div>
-</div>
+  <script>
+    "use strict";
 
-<!-- PERFIL -->
-<div class="overlay hidden" id="profileOverlay">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('profileOverlay')">✕</button>
-    <h2>Tu perfil</h2>
-    <p>Personaliza el nombre que ven tus amigos.</p>
-    <form id="profileForm">
-      <label class="modal-label" for="profileName">Nombre visible</label>
-      <input class="field" id="profileName" maxlength="40" required placeholder="Tu nombre">
-      <button class="primary-btn">Guardar cambios</button>
-      <div id="profileMessage"></div>
-    </form>
-  </div>
-</div>
+    // Deben coincidir con los datos públicos de TU proyecto Supabase.
+    const SUPABASE_URL = "https://kfcembynobnfyrfjcngu.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_Kv4FKTV62wLNSpjWuZ11GQ_ysObznn2";
 
-<script>
-/* =====================================
-   CONFIGURACIÓN DE SUPABASE
-   ===================================== */
-
-const SUPABASE_URL = "https://kfcembynobnfyrfjcngu.supabase.co";
-
-/*
-  Sustituye este valor por la clave publicable real:
-  Supabase > Project Settings > API Keys.
-
-  Una clave publicable nueva suele comenzar por sb_publishable_.
-  La clave anon heredada suele ser un JWT largo.
-  No uses una clave service_role ni una clave secreta.
-*/
-const SUPABASE_ANON_KEY = "sb_publishable_Kv4FKTV62wLNSpjWuZ11GQ_ysObznn2";
-
-let db = null;
-let currentUser = null;
-let currentProfile = null;
-let currentChat = null;
-let chats = [];
-let profiles = {};
-let messageChannel = null;
-let refreshTimer = null;
-let authMode = "login";
-let sending = false;
-
-const $ = id => document.getElementById(id);
-
-function validPublicKey(key) {
-  return typeof key === "string" &&
-    (key.startsWith("sb_publishable_") ||
-     (key.split(".").length === 3 && key.length > 100));
-}
-
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  })[char]);
-}
-
-function initials(name) {
-  return (name || "?").trim().split(/\s+/).slice(0,2)
-    .map(part => part[0] || "").join("").toUpperCase();
-}
-
-function avatarHTML(profile, size="") {
-  const name = profile?.display_name || profile?.email || "Usuario";
-  const photo = profile?.avatar_url;
-  return `<div class="avatar ${size}">${photo
-    ? `<img src="${escapeHTML(photo)}" alt="">`
-    : escapeHTML(initials(name))}</div>`;
-}
-
-function toast(message) {
-  const el = document.createElement("div");
-  el.className = "toast";
-  el.textContent = message;
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 3200);
-}
-
-function setMessage(id, message, isError=true) {
-  const el = $(id);
-  if (!el) return;
-  el.className = message ? (isError ? "error" : "success") : "";
-  el.textContent = message || "";
-}
-
-function openModal(id) { $(id).classList.remove("hidden"); }
-function closeModal(id) { $(id).classList.add("hidden"); }
-
-function setConfigWarning(message) {
-  $("configWarning").textContent = message;
-  $("configWarning").classList.remove("hidden");
-  $("authSubmit").disabled = true;
-}
-
-function init() {
-  if (!window.supabase || !window.supabase.createClient) {
-    setConfigWarning("No se pudo cargar la biblioteca de Supabase. Comprueba tu conexión a Internet.");
-    return;
-  }
-
-  if (!validPublicKey(SUPABASE_ANON_KEY)) {
-    setConfigWarning(
-      "Falta una clave publicable válida. En Supabase abre Project Settings → API Keys, copia la clave publicable y reemplaza SUPABASE_ANON_KEY en index.html."
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
     );
-    return;
-  }
 
-  try {
-    db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-      }
-    });
+    const $ = (id) => document.getElementById(id);
 
-    startAuth();
-  } catch (error) {
-    setConfigWarning("No se pudo iniciar Supabase. Comprueba la URL y la clave publicable.");
-    console.error(error);
-  }
-}
+    let currentUser = null;
+    let currentProfile = null;
+    let currentPage = "home";
+    let currentConversationId = null;
+    let currentChatFriend = null;
+    let friendRecords = [];
+    let conversationRecords = [];
+    let requestRecords = [];
+    let requestTab = "incoming";
+    let messageRefreshTimer = null;
+    let dataRefreshTimer = null;
+    let lastMessageIds = [];
+    let loadingMessages = false;
 
-/* AUTENTICACIÓN */
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[character]);
+    }
 
-async function startAuth() {
-  const { data, error } = await db.auth.getSession();
-  if (error) console.error(error);
+    function initials(name) {
+      const value = String(name || "?").trim();
+      return value ? value.charAt(0).toUpperCase() : "?";
+    }
 
-  if (data?.session?.user) {
-    await onSignedIn(data.session.user);
-  }
+    function setNotice(elementId, text, isError = false) {
+      const element = $(elementId);
+      element.textContent = text;
+      element.classList.remove("hidden", "error");
+      if (isError) element.classList.add("error");
+    }
 
-  db.auth.onAuthStateChange((event, session) => {
-    setTimeout(async () => {
-      if (session?.user && !currentUser) {
-        await onSignedIn(session.user);
-      } else if (!session?.user && currentUser) {
-        resetApp();
-      }
-    }, 0);
-  });
-}
+    function clearNotice(elementId) {
+      const element = $(elementId);
+      element.textContent = "";
+      element.classList.add("hidden");
+      element.classList.remove("error");
+    }
 
-function toggleAuthMode() {
-  authMode = authMode === "login" ? "signup" : "login";
-  $("authTitle").textContent = authMode === "login" ? "Entra en Conecta" : "Crea tu cuenta";
-  $("authSubtitle").textContent = authMode === "login"
-    ? "Tu comunidad empieza aquí."
-    : "Únete y empieza a conversar.";
-  $("authSubmit").textContent = authMode === "login" ? "Iniciar sesión" : "Crear cuenta";
-  $("toggleAuth").textContent = authMode === "login"
-    ? "¿No tienes cuenta? Regístrate"
-    : "¿Ya tienes cuenta? Inicia sesión";
-  $("nameField").classList.toggle("hidden", authMode === "login");
-  $("authPassword").autocomplete = authMode === "login" ? "current-password" : "new-password";
-  setMessage("authMessage", "");
-}
+    function setAuthBusy(formId, busy) {
+      const button = $(formId).querySelector('button[type="submit"]');
+      if (button) button.disabled = busy;
+    }
 
-$("authForm").addEventListener("submit", async event => {
-  event.preventDefault();
-  if (!db) return;
-
-  const email = $("authEmail").value.trim().toLowerCase();
-  const password = $("authPassword").value;
-  const name = $("authName").value.trim();
-
-  $("authSubmit").disabled = true;
-  $("authSubmit").textContent = "Espera...";
-
-  try {
-    let result;
-
-    if (authMode === "signup") {
-      result = await db.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: name || email.split("@")[0] }
-        }
+    function formatDate(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "";
+      return date.toLocaleString("es-ES", {
+        hour: "2-digit",
+        minute: "2-digit",
+        day: "2-digit",
+        month: "short"
       });
-    } else {
-      result = await db.auth.signInWithPassword({ email, password });
     }
 
-    if (result.error) throw result.error;
-
-    if (authMode === "signup" && !result.data.session) {
-      setMessage("authMessage",
-        "Cuenta creada. Revisa tu correo para confirmar el registro y después inicia sesión.",
-        false
-      );
-    } else if (result.data.user) {
-      await onSignedIn(result.data.user);
+    function showAuthPanel(panel) {
+      $("loginPanel").classList.toggle("hidden", panel !== "login");
+      $("signupPanel").classList.toggle("hidden", panel !== "signup");
+      clearNotice("authNotice");
     }
-  } catch (error) {
-    setMessage("authMessage", friendlyError(error));
-  } finally {
-    $("authSubmit").disabled = false;
-    $("authSubmit").textContent = authMode === "login" ? "Iniciar sesión" : "Crear cuenta";
-  }
-});
 
-function friendlyError(error) {
-  const msg = String(error?.message || "");
-  if (/Invalid login credentials/i.test(msg)) return "Correo o contraseña incorrectos.";
-  if (/User already registered/i.test(msg)) return "Este correo ya tiene una cuenta. Inicia sesión.";
-  if (/Email not confirmed/i.test(msg)) return "Confirma tu correo antes de iniciar sesión.";
-  if (/Failed to fetch/i.test(msg)) return "No se pudo conectar con Supabase. Comprueba tu URL y tu conexión.";
-  return msg || "Ha ocurrido un error. Inténtalo de nuevo.";
-}
+    $("showSignup").addEventListener("click", () => showAuthPanel("signup"));
+    $("showLogin").addEventListener("click", () => showAuthPanel("login"));
 
-async function onSignedIn(user) {
-  currentUser = user;
-  $("authOverlay").classList.add("hidden");
+    $("loginForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      setAuthBusy("loginForm", true);
+      clearNotice("authNotice");
 
-  const fallbackName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario";
+      try {
+        const { error } = await supabaseClient.auth.signInWithPassword({
+          email: $("loginEmail").value.trim(),
+          password: $("loginPassword").value
+        });
 
-  try {
-    const { data, error } = await db.from("profiles")
-      .select("*").eq("id", user.id).maybeSingle();
+        if (error) throw error;
+      } catch (error) {
+        setNotice("authNotice", error.message || "No se pudo iniciar sesión.", true);
+      } finally {
+        setAuthBusy("loginForm", false);
+      }
+    });
 
-    if (error) throw error;
+    $("signupForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      setAuthBusy("signupForm", true);
+      clearNotice("authNotice");
 
-    if (data) {
+      const displayName = $("signupName").value.trim();
+      const username = $("signupUsername").value.trim().replace(/^@/, "");
+      const email = $("signupEmail").value.trim();
+      const password = $("signupPassword").value;
+
+      if (!/^[A-Za-z0-9_]{3,24}$/.test(username)) {
+        setNotice("authNotice", "El usuario debe tener entre 3 y 24 caracteres: letras, números o guion bajo.", true);
+        setAuthBusy("signupForm", false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              display_name: displayName,
+              username: username
+            }
+          }
+        });
+
+        if (error) throw error;
+
+        if (data.session) {
+          setNotice("authNotice", "Cuenta creada. Entrando…");
+        } else {
+          setNotice(
+            "authNotice",
+            "Cuenta creada. Si Supabase te pide confirmar el correo, abre el mensaje de confirmación y después inicia sesión."
+          );
+          showAuthPanel("login");
+          setNotice(
+            "authNotice",
+            "Cuenta creada. Revisa tu correo si necesitas confirmar la cuenta antes de iniciar sesión."
+          );
+        }
+      } catch (error) {
+        setNotice("authNotice", error.message || "No se pudo crear la cuenta.", true);
+      } finally {
+        setAuthBusy("signupForm", false);
+      }
+    });
+
+    $("logoutButton").addEventListener("click", async () => {
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) alert("No se pudo cerrar sesión: " + error.message);
+    });
+
+    $("mobileMenu").addEventListener("click", () => {
+      $("sidebar").classList.toggle("mobile-open");
+    });
+
+    $("homeSearchButton").addEventListener("click", () => navigate("search"));
+    $("refreshFriends").addEventListener("click", refreshAllData);
+
+    document.querySelectorAll("[data-page]").forEach((button) => {
+      button.addEventListener("click", () => navigate(button.dataset.page));
+    });
+
+    $("profileButton").addEventListener("click", openProfileModal);
+
+    document.querySelectorAll("[data-close-modal]").forEach((button) => {
+      button.addEventListener("click", () => {
+        $(button.dataset.closeModal).classList.add("hidden");
+      });
+    });
+
+    $("profileModal").addEventListener("click", (event) => {
+      if (event.target === $("profileModal")) {
+        $("profileModal").classList.add("hidden");
+      }
+    });
+
+    async function handleAuthSession(session) {
+      if (!session) {
+        stopRefreshTimers();
+        currentUser = null;
+        currentProfile = null;
+        currentConversationId = null;
+        currentChatFriend = null;
+        $("authPage").classList.remove("hidden");
+        $("app").classList.add("hidden");
+        $("sidebar").classList.remove("mobile-open");
+        return;
+      }
+
+      currentUser = session.user;
+      $("authPage").classList.add("hidden");
+      $("app").classList.remove("hidden");
+      $("connectionStatus").textContent = "Conectado";
+
+      try {
+        await loadMyProfile();
+        await refreshAllData();
+        navigate("home");
+        startRefreshTimers();
+      } catch (error) {
+        console.error(error);
+        $("connectionStatus").textContent = "Error de configuración";
+        alert(
+          "No se pudo cargar tu perfil o los datos de la aplicación.\n\n" +
+          (error.message || "Comprueba las tablas y permisos de Supabase.")
+        );
+      }
+    }
+
+    async function loadMyProfile() {
+      const { data, error } = await supabaseClient
+        .from("profiles")
+        .select("id, display_name, username")
+        .eq("id", currentUser.id)
+        .maybeSingle();
+
+      if (error) throw error;
+
       currentProfile = data;
-    } else {
-      const { data: created, error: insertError } = await db.from("profiles")
-        .insert({
-          id: user.id,
-          display_name: fallbackName,
-          email: user.email?.toLowerCase()
-        }).select().single();
 
-      if (insertError) throw insertError;
-      currentProfile = created;
+      if (!currentProfile) {
+        const { error: insertError } = await supabaseClient
+          .from("profiles")
+          .insert({
+            id: currentUser.id,
+            display_name:
+              currentUser.user_metadata?.display_name ||
+              currentUser.email?.split("@")[0] ||
+              "Usuario",
+            username:
+              currentUser.user_metadata?.username ||
+              makeFallbackUsername(currentUser.id)
+          });
+
+        if (insertError) {
+          throw new Error(
+            "No se encontró tu perfil y no se pudo crearlo. Comprueba las políticas RLS de profiles. " +
+            insertError.message
+          );
+        }
+
+        const { data: newProfile, error: reloadError } = await supabaseClient
+          .from("profiles")
+          .select("id, display_name, username")
+          .eq("id", currentUser.id)
+          .single();
+
+        if (reloadError) throw reloadError;
+        currentProfile = newProfile;
+      }
+
+      if (!currentProfile.username) {
+        const suggestedUsername =
+          currentUser.user_metadata?.username ||
+          makeFallbackUsername(currentUser.id);
+
+        const { data: updated, error: updateError } = await supabaseClient
+          .from("profiles")
+          .update({ username: suggestedUsername })
+          .eq("id", currentUser.id)
+          .select("id, display_name, username")
+          .single();
+
+        if (updateError) {
+          console.warn("No se pudo asignar automáticamente el usuario:", updateError.message);
+        } else {
+          currentProfile = updated;
+        }
+      }
+
+      updateMyProfileUI();
     }
-  } catch (error) {
-    console.error("Error cargando perfil:", error);
-    currentProfile = {
-      id: user.id,
-      display_name: fallbackName,
-      email: user.email
-    };
-    toast("No se pudo cargar el perfil. Comprueba las políticas RLS de profiles.");
-  }
 
-  $("myName").textContent = currentProfile.display_name || fallbackName;
-  $("myAvatar").textContent = initials(currentProfile.display_name || fallbackName);
-  $("myStatus").textContent = "● Cuenta activa";
+    function makeFallbackUsername(id) {
+      return "user_" + String(id).replace(/-/g, "").slice(0, 10);
+    }
 
-  $("messageInput").disabled = false;
-  $("sendBtn").disabled = false;
+    function updateMyProfileUI() {
+      if (!currentProfile) return;
 
-  await loadChats();
-}
+      $("myDisplayName").textContent =
+        currentProfile.display_name || "Usuario";
+      $("myUsername").textContent =
+        "@" + (currentProfile.username || "sin_usuario");
+      $("myAvatar").textContent =
+        initials(currentProfile.display_name || currentProfile.username);
+    }
 
-async function logout() {
-  if (!db || !currentUser) {
-    openModal("authOverlay");
-    return;
-  }
+    function openProfileModal() {
+      if (!currentProfile) return;
+      $("profileDisplayName").value = currentProfile.display_name || "";
+      $("profileUsername").value = currentProfile.username || "";
+      $("profileNotice").textContent = "";
+      $("profileModal").classList.remove("hidden");
+    }
 
-  const { error } = await db.auth.signOut();
-  if (error) toast(friendlyError(error));
-  resetApp();
-}
+    $("profileForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
 
-function resetApp() {
-  currentUser = null;
-  currentProfile = null;
-  currentChat = null;
-  chats = [];
-  profiles = {};
+      const displayName = $("profileDisplayName").value.trim();
+      const username = $("profileUsername").value.trim().replace(/^@/, "");
 
-  if (messageChannel && db) db.removeChannel(messageChannel);
-  messageChannel = null;
-  clearInterval(refreshTimer);
-  refreshTimer = null;
+      if (!displayName) {
+        $("profileNotice").textContent = "Escribe un nombre para mostrar.";
+        return;
+      }
 
-  $("authOverlay").classList.remove("hidden");
-  $("chatList").innerHTML = '<div class="empty-side">Inicia sesión para ver tus conversaciones.</div>';
-  $("messages").innerHTML = '<div class="welcome"><div class="welcome-icon"><i class="fa-solid fa-comments"></i></div><h2>Hasta pronto</h2><p>Inicia sesión para volver a Conecta.</p></div>';
-  $("chatTitle").textContent = "Bienvenido a Conecta";
-  $("myName").textContent = "Sin sesión";
-  $("myAvatar").textContent = "?";
-  $("myStatus").textContent = "● Desconectado";
-  $("messageInput").disabled = true;
-  $("sendBtn").disabled = true;
-}
+      if (!/^[A-Za-z0-9_]{3,24}$/.test(username)) {
+        $("profileNotice").textContent =
+          "El usuario debe tener entre 3 y 24 caracteres: letras, números o guion bajo.";
+        return;
+      }
 
-/* CONVERSACIONES */
+      const button = $("profileForm").querySelector('button[type="submit"]');
+      button.disabled = true;
 
-async function loadChats() {
-  if (!currentUser) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from("profiles")
+          .update({
+            display_name: displayName,
+            username: username
+          })
+          .eq("id", currentUser.id)
+          .select("id, display_name, username")
+          .single();
 
-  const { data: memberships, error: memberError } = await db
-    .from("conversation_members")
-    .select("conversation_id")
-    .eq("user_id", currentUser.id);
+        if (error) throw error;
 
-  if (memberError) {
-    console.error(memberError);
-    $("chatList").innerHTML = '<div class="empty-side">No se pudieron cargar las conversaciones. Revisa las políticas RLS.</div>';
-    return;
-  }
-
-  const ids = [...new Set((memberships || []).map(row => row.conversation_id))];
-
-  if (!ids.length) {
-    chats = [];
-    renderChats();
-    return;
-  }
-
-  const { data: conversations, error: conversationError } = await db
-    .from("conversations")
-    .select("id, created_by, created_at")
-    .in("id", ids)
-    .order("created_at", { ascending: false });
-
-  if (conversationError) {
-    console.error(conversationError);
-    toast("No se pudieron cargar las conversaciones.");
-    return;
-  }
-
-  const { data: allMembers, error: allMembersError } = await db
-    .from("conversation_members")
-    .select("conversation_id,user_id")
-    .in("conversation_id", ids);
-
-  if (allMembersError) console.error(allMembersError);
-
-  const userIds = [...new Set((allMembers || []).map(m => m.user_id))];
-
-  if (userIds.length) {
-    const { data: people, error: peopleError } = await db
-      .from("profiles")
-      .select("id,display_name,email")
-      .in("id", userIds);
-
-    if (peopleError) console.error(peopleError);
-
-    (people || []).forEach(profile => {
-      profiles[profile.id] = profile;
+        currentProfile = data;
+        updateMyProfileUI();
+        $("profileNotice").textContent = "Perfil actualizado correctamente.";
+        await refreshAllData();
+      } catch (error) {
+        $("profileNotice").textContent =
+          error.message || "No se pudo actualizar el perfil.";
+      } finally {
+        button.disabled = false;
+      }
     });
-  }
 
-  chats = (conversations || []).map(conversation => {
-    const members = (allMembers || []).filter(m => m.conversation_id === conversation.id);
-    const other = members.find(m => m.user_id !== currentUser.id);
-    const otherProfile = other ? profiles[other.user_id] : null;
+    function navigate(page) {
+      currentPage = page;
+      currentConversationId = null;
+      currentChatFriend = null;
+      stopMessageRefresh();
 
-    return {
-      ...conversation,
-      members,
-      otherUserId: other?.user_id || currentUser.id,
-      name: otherProfile?.display_name || otherProfile?.email || "Conversación",
-      profile: otherProfile
-    };
-  });
+      document.querySelectorAll("[data-page]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.page === page);
+      });
 
-  renderChats();
+      $("sidebar").classList.remove("mobile-open");
 
-  if (currentChat) {
-    const refreshed = chats.find(chat => chat.id === currentChat.id);
-    if (refreshed) currentChat = refreshed;
-  }
+      const titles = {
+        home: "Inicio",
+        search: "Buscar amigos",
+        requests: "Solicitudes de amistad"
+      };
 
-  if (!currentChat && chats.length) {
-    await selectChat(chats[0].id);
-  } else if (!chats.length) {
-    $("messages").innerHTML = `
-      <div class="welcome">
-        <div class="welcome-icon"><i class="fa-solid fa-user-plus"></i></div>
-        <h2>Empieza a conectar</h2>
-        <p>Todavía no tienes conversaciones. Añade a un amigo con su correo electrónico.</p>
-        <button class="primary-btn" style="max-width:220px" onclick="openNewChat()">Añadir amigo</button>
-      </div>`;
-  }
-}
+      $("pageTitle").textContent = titles[page] || "Conversa";
+      $("mainContent").innerHTML = "";
 
-function renderChats() {
-  const filter = ($("searchInput").value || "").trim().toLowerCase();
-  const filtered = chats.filter(chat => chat.name.toLowerCase().includes(filter));
+      if (page === "home") renderHome();
+      if (page === "search") renderSearchPage();
+      if (page === "requests") renderRequestsPage();
+    }
 
-  if (!filtered.length) {
-    $("chatList").innerHTML = `<div class="empty-side">${chats.length ? "No hay resultados." : "Todavía no tienes conversaciones. Pulsa + para hablar con alguien."}</div>`;
-    return;
-  }
-
-  $("chatList").innerHTML = filtered.map(chat => `
-    <div class="conversation ${currentChat?.id === chat.id ? "active" : ""}"
-         onclick="selectChat('${chat.id}')">
-      ${avatarHTML(chat.profile, "small")}
-      <div class="conversation-meta">
-        <div class="conversation-name">${escapeHTML(chat.name)}</div>
-        <div class="conversation-preview">${escapeHTML(chat.profile?.email || "Mensaje privado")}</div>
-      </div>
-    </div>
-  `).join("");
-}
-
-function filterChats() { renderChats(); }
-
-async function selectChat(id) {
-  const chat = chats.find(c => c.id === id);
-  if (!chat) return;
-
-  currentChat = chat;
-  $("chatTitle").textContent = chat.name;
-  $("chatIcon").className = "fa-solid fa-user";
-  $("app").classList.add("mobile-chat");
-
-  renderChats();
-  renderMembers();
-  await loadMessages();
-  subscribeMessages();
-}
-
-function renderMembers() {
-  if (!currentChat) return;
-  const memberRows = currentChat.members || [];
-
-  $("memberList").innerHTML = memberRows.map(member => {
-    const profile = profiles[member.user_id] || {};
-    const name = profile.display_name || profile.email || "Usuario";
-    return `
-      <div class="member-row">
-        ${avatarHTML(profile, "small")}
-        <div style="min-width:0">
-          <div class="member-label">${escapeHTML(name)}${member.user_id === currentUser.id ? " (tú)" : ""}</div>
-          <div class="member-sub">${member.user_id === currentUser.id ? "Tu cuenta" : "Miembro"}</div>
+    function renderHome() {
+      $("mainContent").innerHTML = `
+        <div class="welcome-panel">
+          <div class="welcome-icon">✦</div>
+          <h1>¡Hola, ${escapeHtml(currentProfile?.display_name || "amigo")}!</h1>
+          <p>Tu espacio para conectar. Busca a alguien por su nombre de usuario, envíale una solicitud y empieza a conversar.</p>
+          <button class="primary" id="homeSearchButtonInner">Buscar amigos</button>
         </div>
-      </div>`;
-  }).join("") || '<div class="empty-side">Sin participantes.</div>';
-}
+      `;
 
-/* MENSAJES */
+      $("homeSearchButtonInner").addEventListener("click", () => navigate("search"));
+    }
 
-async function loadMessages() {
-  if (!currentChat || !currentUser) return;
-
-  const { data, error } = await db.from("messages")
-    .select("id,conversation_id,sender_id,content,created_at")
-    .eq("conversation_id", currentChat.id)
-    .order("created_at", { ascending: true })
-    .limit(100);
-
-  if (error) {
-    console.error(error);
-    $("messages").innerHTML = '<div class="welcome"><h2>No se pueden cargar los mensajes</h2><p>Comprueba las políticas de seguridad de la tabla messages y que el usuario sea miembro de esta conversación.</p></div>';
-    return;
-  }
-
-  renderMessages(data || []);
-}
-
-function renderMessages(messages) {
-  if (!messages.length) {
-    $("messages").innerHTML = `
-      <div class="welcome">
-        <div class="welcome-icon"><i class="fa-solid fa-paper-plane"></i></div>
-        <h2>¡Di hola!</h2>
-        <p>Esta conversación está lista. Envía el primer mensaje para empezar.</p>
-      </div>`;
-    return;
-  }
-
-  $("messages").innerHTML = messages.map(message => {
-    const own = message.sender_id === currentUser?.id;
-    const profile = profiles[message.sender_id] || (own ? currentProfile : null);
-    const name = own ? (currentProfile?.display_name || "Tú") :
-      (profile?.display_name || profile?.email || "Usuario");
-    const time = message.created_at
-      ? new Date(message.created_at).toLocaleString("es-ES", { hour:"2-digit", minute:"2-digit", day:"2-digit", month:"short" })
-      : "";
-
-    return `
-      <article class="message" id="message-${escapeHTML(message.id)}">
-        ${avatarHTML(profile, "")}
-        <div class="message-body">
-          <div class="message-head">
-            <span class="message-author">${escapeHTML(name)}</span>
-            <span class="message-time">${escapeHTML(time)}</span>
+    function renderSearchPage() {
+      $("mainContent").innerHTML = `
+        <div class="content-card">
+          <h2>Encuentra a tus amigos</h2>
+          <p>Busca por nombre de usuario. Puedes escribirlo con o sin @.</p>
+          <form id="searchForm">
+            <div class="search-row">
+              <input id="usernameSearch" maxlength="24"
+                     placeholder="Ejemplo: @maria_23" autocomplete="off" required>
+              <button class="primary" type="submit">Buscar</button>
+            </div>
+          </form>
+          <div id="searchStatus" class="status-line"></div>
+          <div id="searchResults" class="result-list">
+            <div class="empty-state">Escribe un nombre de usuario para comenzar.</div>
           </div>
-          <div class="message-text">${formatMessage(message.content)}</div>
         </div>
-      </article>`;
-  }).join("");
+      `;
 
-  $("messages").scrollTop = $("messages").scrollHeight;
-}
+      $("searchForm").addEventListener("submit", searchUsers);
+      $("usernameSearch").focus();
+    }
 
-function formatMessage(content) {
-  const safe = escapeHTML(content);
-  return safe.replace(/(https?:\/\/[^\s<]+)/g,
-    '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
-}
+    async function searchUsers(event) {
+      event.preventDefault();
 
-$("messageForm").addEventListener("submit", async event => {
-  event.preventDefault();
-  if (!currentUser || !currentChat || sending) return;
+      const input = $("usernameSearch");
+      const term = input.value.trim().replace(/^@/, "");
+      const results = $("searchResults");
+      const status = $("searchStatus");
 
-  const input = $("messageInput");
-  const content = input.value.trim();
-  if (!content) return;
-
-  sending = true;
-  $("sendBtn").disabled = true;
-
-  try {
-    const { error } = await db.from("messages").insert({
-      conversation_id: currentChat.id,
-      sender_id: currentUser.id,
-      content
-    });
-
-    if (error) throw error;
-
-    input.value = "";
-    input.style.height = "25px";
-    await loadMessages();
-  } catch (error) {
-    console.error(error);
-    toast("No se pudo enviar el mensaje: " + friendlyError(error));
-  } finally {
-    sending = false;
-    $("sendBtn").disabled = !currentUser || !currentChat;
-    input.focus();
-  }
-});
-
-$("messageInput").addEventListener("input", event => {
-  const el = event.target;
-  el.style.height = "25px";
-  el.style.height = Math.min(el.scrollHeight, 130) + "px";
-});
-
-$("messageInput").addEventListener("keydown", event => {
-  if (event.key === "Enter" && !event.shiftKey) {
-    event.preventDefault();
-    $("messageForm").requestSubmit();
-  }
-});
-
-function subscribeMessages() {
-  if (!db || !currentChat) return;
-  if (messageChannel) db.removeChannel(messageChannel);
-
-  const chatId = currentChat.id;
-  messageChannel = db.channel("messages-" + chatId)
-    .on("postgres_changes", {
-      event: "INSERT",
-      schema: "public",
-      table: "messages",
-      filter: "conversation_id=eq." + chatId
-    }, async payload => {
-      if (currentChat?.id === chatId) {
-        await loadMessages();
+      if (term.length < 2) {
+        status.textContent = "Escribe al menos 2 caracteres.";
+        return;
       }
-    })
-    .subscribe(status => {
-      if (status === "CHANNEL_ERROR") {
-        console.warn("Realtime no está disponible. Se usará actualización periódica.");
-      }
-    });
 
-  clearInterval(refreshTimer);
-  refreshTimer = setInterval(() => {
-    if (currentChat?.id === chatId) loadMessages();
-  }, 12000);
-}
+      status.textContent = "Buscando…";
+      results.innerHTML = "";
 
-/* CREAR CHAT PRIVADO */
+      try {
+        const { data, error } = await supabaseClient.rpc(
+          "search_users_by_username",
+          { search_term: term }
+        );
 
-function openNewChat() {
-  if (!currentUser) {
-    openModal("authOverlay");
-    return;
-  }
-  $("friendEmail").value = "";
-  setMessage("newChatMessage", "");
-  openModal("newChatOverlay");
-}
+        if (error) throw error;
 
-$("newChatForm").addEventListener("submit", async event => {
-  event.preventDefault();
-  if (!currentUser) return;
+        const users = (data || []).filter((user) => user.id !== currentUser.id);
 
-  const email = $("friendEmail").value.trim().toLowerCase();
-  if (!email || email === currentUser.email?.toLowerCase()) {
-    setMessage("newChatMessage", "Introduce el correo de otra persona.");
-    return;
-  }
-
-  $("newChatSubmit").disabled = true;
-  $("newChatSubmit").textContent = "Buscando...";
-
-  try {
-    /*
-      La búsqueda por correo requiere una política que permita
-      buscar perfiles. En producción, es preferible una función
-      SQL/RPC que revele solo los campos necesarios.
-    */
-    const { data: friend, error: friendError } = await db
-      .from("profiles")
-      .select("id,display_name,email")
-      .eq("email", email)
-      .maybeSingle();
-
-    if (friendError) throw friendError;
-    if (!friend) throw new Error("No encontramos una cuenta con ese correo.");
-    if (friend.id === currentUser.id) throw new Error("No puedes crear un chat contigo mismo.");
-
-    profiles[friend.id] = friend;
-
-    const { data: existingMemberships, error: existingError } = await db
-      .from("conversation_members")
-      .select("conversation_id")
-      .eq("user_id", currentUser.id);
-
-    if (existingError) throw existingError;
-
-    const ids = (existingMemberships || []).map(m => m.conversation_id);
-
-    if (ids.length) {
-      const { data: shared, error: sharedError } = await db
-        .from("conversation_members")
-        .select("conversation_id")
-        .eq("user_id", friend.id)
-        .in("conversation_id", ids);
-
-      if (sharedError) throw sharedError;
-
-      if (shared?.length) {
-        const { data: memberRows, error: memberError } = await db
-          .from("conversation_members")
-          .select("conversation_id,user_id")
-          .in("conversation_id", shared.map(s => s.conversation_id));
-
-        if (memberError) throw memberError;
-
-        const existingId = shared.find(s => {
-          const rows = memberRows.filter(m => m.conversation_id === s.conversation_id);
-          return rows.length === 2 &&
-            rows.some(m => m.user_id === currentUser.id) &&
-            rows.some(m => m.user_id === friend.id);
-        })?.conversation_id;
-
-        if (existingId) {
-          closeModal("newChatOverlay");
-          await loadChats();
-          await selectChat(existingId);
+        if (!users.length) {
+          status.textContent = "";
+          results.innerHTML = `
+            <div class="empty-state">
+              No se encontraron usuarios con ese nombre.<br>
+              Comprueba la escritura o prueba con otro nombre.
+            </div>
+          `;
           return;
         }
+
+        status.textContent = `${users.length} resultado(s).`;
+        results.innerHTML = users.map((user) => {
+          const relation = getRelationship(user.id);
+
+          let action = "";
+          if (relation === "friend") {
+            action = `<button class="secondary" data-open-friend="${escapeHtml(user.id)}">Enviar mensaje</button>`;
+          } else if (relation === "incoming") {
+            action = `<button class="success" data-page-go="requests">Responder solicitud</button>`;
+          } else if (relation === "outgoing") {
+            action = `<button class="secondary" disabled>Solicitud enviada</button>`;
+          } else {
+            action = `<button class="primary" data-add-friend="${escapeHtml(user.id)}">Añadir amigo</button>`;
+          }
+
+          return `
+            <div class="person-row">
+              <div class="avatar">${escapeHtml(initials(user.display_name || user.username))}</div>
+              <div class="person-details">
+                <strong>${escapeHtml(user.display_name || user.username || "Usuario")}</strong>
+                <span>@${escapeHtml(user.username || "sin_usuario")}</span>
+              </div>
+              <div class="person-actions">${action}</div>
+            </div>
+          `;
+        }).join("");
+
+        results.querySelectorAll("[data-add-friend]").forEach((button) => {
+          button.addEventListener("click", () => sendFriendRequest(button.dataset.addFriend, button));
+        });
+
+        results.querySelectorAll("[data-open-friend]").forEach((button) => {
+          button.addEventListener("click", () => openDirectMessage(button.dataset.openFriend));
+        });
+
+        results.querySelectorAll("[data-page-go]").forEach((button) => {
+          button.addEventListener("click", () => navigate("requests"));
+        });
+      } catch (error) {
+        console.error(error);
+        status.textContent = "";
+        results.innerHTML = `
+          <div class="notice error">
+            No se pudo buscar. Comprueba que exista la función
+            search_users_by_username en Supabase y que permita ejecutarla a usuarios autenticados.
+            <br><br>${escapeHtml(error.message || "")}
+          </div>
+        `;
       }
     }
 
-    const { data: conversation, error: conversationError } = await db
-      .from("conversations")
-      .insert({ created_by: currentUser.id })
-      .select("id,created_by,created_at")
-      .single();
+    function getRelationship(userId) {
+      if (friendRecords.some((friend) => friend.id === userId)) return "friend";
 
-    if (conversationError) throw conversationError;
+      const incoming = requestRecords.some((request) =>
+        request.direction === "incoming" &&
+        request.status === "pending" &&
+        request.sender_id === userId
+      );
 
-    const { error: insertMembersError } = await db
-      .from("conversation_members")
-      .insert([
-        { conversation_id: conversation.id, user_id: currentUser.id },
-        { conversation_id: conversation.id, user_id: friend.id }
-      ]);
+      if (incoming) return "incoming";
 
-    if (insertMembersError) throw insertMembersError;
+      const outgoing = requestRecords.some((request) =>
+        request.direction === "outgoing" &&
+        request.status === "pending" &&
+        request.receiver_id === userId
+      );
 
-    closeModal("newChatOverlay");
-    toast("Conversación creada.");
-    await loadChats();
-    await selectChat(conversation.id);
+      if (outgoing) return "outgoing";
 
-  } catch (error) {
-    console.error(error);
-    setMessage("newChatMessage", friendlyError(error));
-  } finally {
-    $("newChatSubmit").disabled = false;
-    $("newChatSubmit").textContent = "Crear conversación";
-  }
-});
+      return "none";
+    }
 
-/* PERFIL */
+    async function sendFriendRequest(userId, button) {
+      button.disabled = true;
+      button.textContent = "Enviando…";
 
-function openProfile() {
-  if (!currentUser) {
-    openModal("authOverlay");
-    return;
-  }
-  $("profileName").value = currentProfile?.display_name || "";
-  setMessage("profileMessage", "");
-  openModal("profileOverlay");
-}
+      try {
+        const { error } = await supabaseClient.rpc("send_friend_request", {
+          target_user: userId
+        });
 
-$("profileForm").addEventListener("submit", async event => {
-  event.preventDefault();
-  if (!currentUser) return;
+        if (error) throw error;
 
-  const name = $("profileName").value.trim();
-  if (!name) {
-    setMessage("profileMessage", "Escribe un nombre.");
-    return;
-  }
+        await refreshAllData();
 
-  try {
-    const { data, error } = await db.from("profiles")
-      .update({ display_name: name })
-      .eq("id", currentUser.id)
-      .select()
-      .single();
+        button.className = "secondary";
+        button.textContent = "Solicitud enviada";
+        button.disabled = true;
 
-    if (error) throw error;
+        // Actualiza los resultados para reflejar relaciones nuevas.
+        const input = $("usernameSearch");
+        if (input) {
+          const form = $("searchForm");
+          if (form) await searchUsers(new Event("submit", { cancelable: true }));
+        }
+      } catch (error) {
+        alert("No se pudo enviar la solicitud: " + (error.message || "Error desconocido"));
+        button.disabled = false;
+        button.textContent = "Añadir amigo";
+      }
+    }
 
-    currentProfile = data;
-    $("myName").textContent = name;
-    $("myAvatar").textContent = initials(name);
+    function renderRequestsPage() {
+      $("mainContent").innerHTML = `
+        <div class="content-card">
+          <h2>Solicitudes de amistad</h2>
+          <p>Acepta las solicitudes de otras personas o consulta las que has enviado.</p>
 
-    closeModal("profileOverlay");
-    toast("Perfil actualizado.");
-    await loadChats();
-  } catch (error) {
-    console.error(error);
-    setMessage("profileMessage", friendlyError(error));
-  }
-});
+          <div class="request-tabs">
+            <button class="secondary ${requestTab === "incoming" ? "active" : ""}" id="incomingTab">
+              Recibidas
+            </button>
+            <button class="secondary ${requestTab === "outgoing" ? "active" : ""}" id="outgoingTab">
+              Enviadas
+            </button>
+          </div>
 
-/* NAVEGACIÓN */
+          <div id="requestsResults" class="result-list"></div>
+        </div>
+      `;
 
-function showHome() {
-  $("app").classList.remove("mobile-chat");
-  if (currentChat) {
-    $("chatTitle").textContent = currentChat.name;
-  }
-}
+      $("incomingTab").addEventListener("click", () => {
+        requestTab = "incoming";
+        renderRequestsPage();
+      });
 
-function mobileBack() {
-  $("app").classList.remove("mobile-chat");
-}
+      $("outgoingTab").addEventListener("click", () => {
+        requestTab = "outgoing";
+        renderRequestsPage();
+      });
 
-function focusComposer() {
-  $("messageInput").focus();
-}
+      const filtered = requestRecords.filter((request) =>
+        request.status === "pending" &&
+        request.direction === requestTab
+      );
 
-init();
-</script>
+      const target = $("requestsResults");
+
+      if (!filtered.length) {
+        target.innerHTML = `
+          <div class="empty-state">
+            ${requestTab === "incoming"
+              ? "No tienes solicitudes pendientes."
+              : "No has enviado solicitudes pendientes."}
+          </div>
+        `;
+        return;
+      }
+
+      target.innerHTML = filtered.map((request) => {
+        const displayName = request.display_name || request.username || "Usuario";
+        const username = request.username || "sin_usuario";
+
+        let actions = "";
+        if (requestTab === "incoming") {
+          actions = `
+            <button class="success" data-accept="${escapeHtml(request.request_id)}">Aceptar</button>
+            <button class="danger" data-reject="${escapeHtml(request.request_id)}">Rechazar</button>
+          `;
+        } else {
+          actions = `<button class="secondary" disabled>Pendiente</button>`;
+        }
+
+        return `
+          <div class="person-row">
+            <div class="avatar">${escapeHtml(initials(displayName))}</div>
+            <div class="person-details">
+              <strong>${escapeHtml(displayName)}</strong>
+              <span>@${escapeHtml(username)}</span>
+            </div>
+            <div class="person-actions">${actions}</div>
+          </div>
+        `;
+      }).join("");
+
+      target.querySelectorAll("[data-accept]").forEach((button) => {
+        button.addEventListener("click", () => respondToRequest(button.dataset.accept, true));
+      });
+
+      target.querySelectorAll("[data-reject]").forEach((button) => {
+        button.addEventListener("click", () => respondToRequest(button.dataset.reject, false));
+      });
+    }
+
+    async function respondToRequest(requestId, accept) {
+      try {
+        const { error } = await supabaseClient.rpc("respond_friend_request", {
+          request_id: requestId,
+          accept: accept
+        });
+
+        if (error) throw error;
+
+        await refreshAllData();
+        renderRequestsPage();
+      } catch (error) {
+        alert(
+          "No se pudo " + (accept ? "aceptar" : "rechazar") +
+          " la solicitud: " + (error.message || "Error desconocido")
+        );
+      }
+    }
+
+    async function refreshAllData() {
+      if (!currentUser) return;
+
+      try {
+        await Promise.all([
+          loadFriends(),
+          loadRequests(),
+          loadConversations()
+        ]);
+
+        renderFriendsList();
+        renderConversationsList();
+
+        const badge = $("requestBadge");
+        const incomingCount = requestRecords.filter((request) =>
+          request.direction === "incoming" && request.status === "pending"
+        ).length;
+
+        badge.textContent = String(incomingCount);
+        badge.classList.toggle("hidden", incomingCount === 0);
+
+        if (currentPage === "requests") renderRequestsPage();
+      } catch (error) {
+        console.error("Error al actualizar datos:", error);
+        $("connectionStatus").textContent = "Problema al actualizar";
+      }
+    }
+
+    async function loadFriends() {
+      const { data, error } = await supabaseClient.rpc("list_friends");
+      if (error) throw error;
+      friendRecords = data || [];
+    }
+
+    async function loadRequests() {
+      const { data, error } = await supabaseClient.rpc("list_friend_requests");
+      if (error) throw error;
+      requestRecords = data || [];
+    }
+
+    async function loadConversations() {
+      const { data: memberships, error: membershipError } = await supabaseClient
+        .from("conversation_members")
+        .select("conversation_id")
+        .eq("user_id", currentUser.id);
+
+      if (membershipError) throw membershipError;
+
+      const ids = [...new Set((memberships || []).map((row) => row.conversation_id))];
+
+      if (!ids.length) {
+        conversationRecords = [];
+        return;
+      }
+
+      const { data: conversations, error: conversationsError } = await supabaseClient
+        .from("conversations")
+        .select("*")
+        .in("id", ids)
+        .order("created_at", { ascending: false });
+
+      if (conversationsError) throw conversationsError;
+
+      conversationRecords = conversations || [];
+    }
+
+    function renderFriendsList() {
+      const target = $("friendsList");
+
+      if (!friendRecords.length) {
+        target.innerHTML = `<div class="empty-state small">Todavía no tienes amigos.<br>¡Busca a alguien!</div>`;
+        return;
+      }
+
+      target.innerHTML = friendRecords.map((friend) => {
+        const name = friend.display_name || friend.username || "Usuario";
+        return `
+          <button class="side-button" data-friend-chat="${escapeHtml(friend.id)}">
+            <div class="avatar" style="width:32px;height:32px;flex-basis:32px;font-size:13px">
+              ${escapeHtml(initials(name))}
+            </div>
+            <span class="item-main">
+              <strong>${escapeHtml(name)}</strong>
+              <span>@${escapeHtml(friend.username || "usuario")}</span>
+            </span>
+          </button>
+        `;
+      }).join("");
+
+      target.querySelectorAll("[data-friend-chat]").forEach((button) => {
+        button.addEventListener("click", () => openDirectMessage(button.dataset.friendChat));
+      });
+    }
+
+    function renderConversationsList() {
+      const target = $("conversationsList");
+
+      if (!conversationRecords.length) {
+        target.innerHTML = `<div class="empty-state small">No hay conversaciones todavía.</div>`;
+        return;
+      }
+
+      target.innerHTML = conversationRecords.map((conversation, index) => `
+        <button class="side-button" data-conversation="${escapeHtml(conversation.id)}">
+          <span>✉</span>
+          <span class="item-main">
+            <strong>Conversación ${index + 1}</strong>
+            <span>Chat privado</span>
+          </span>
+        </button>
+      `).join("");
+
+      target.querySelectorAll("[data-conversation]").forEach((button) => {
+        button.addEventListener("click", () => openExistingConversation(button.dataset.conversation));
+      });
+    }
+
+    async function openDirectMessage(friendId) {
+      const friend = friendRecords.find((item) => item.id === friendId);
+
+      if (!friend) {
+        alert("No se encuentra esta persona en tu lista de amigos. Actualiza tus datos e inténtalo de nuevo.");
+        await refreshAllData();
+        return;
+      }
+
+      try {
+        $("connectionStatus").textContent = "Abriendo chat…";
+
+        const { data: myMemberships, error: myMembershipError } = await supabaseClient
+          .from("conversation_members")
+          .select("conversation_id")
+          .eq("user_id", currentUser.id);
+
+        if (myMembershipError) throw myMembershipError;
+
+        const myConversationIds = (myMemberships || []).map((row) => row.conversation_id);
+
+        let existingConversationId = null;
+
+        if (myConversationIds.length) {
+          const { data: theirMemberships, error: theirMembershipError } = await supabaseClient
+            .from("conversation_members")
+            .select("conversation_id")
+            .eq("user_id", friendId)
+            .in("conversation_id", myConversationIds);
+
+          if (theirMembershipError) throw theirMembershipError;
+
+          const sharedIds = (theirMemberships || []).map((row) => row.conversation_id);
+
+          if (sharedIds.length) {
+            const { data: sharedConversations, error: sharedError } = await supabaseClient
+              .from("conversations")
+              .select("id")
+              .in("id", sharedIds);
+
+            if (sharedError) throw sharedError;
+
+            // Solo reutilizar una conversación con exactamente dos miembros.
+            for (const conversation of sharedConversations || []) {
+              const { count, error: countError } = await supabaseClient
+                .from("conversation_members")
+                .select("*", { count: "exact", head: true })
+                .eq("conversation_id", conversation.id);
+
+              if (countError) throw countError;
+
+              if (count === 2) {
+                existingConversationId = conversation.id;
+                break;
+              }
+            }
+          }
+        }
+
+        if (!existingConversationId) {
+          const { data: newConversation, error: createError } = await supabaseClient
+            .from("conversations")
+            .insert({})
+            .select("id")
+            .single();
+
+          if (createError) throw createError;
+
+          const { error: membersError } = await supabaseClient
+            .from("conversation_members")
+            .insert([
+              { conversation_id: newConversation.id, user_id: currentUser.id },
+              { conversation_id: newConversation.id, user_id: friendId }
+            ]);
+
+          if (membersError) throw membersError;
+
+          existingConversationId = newConversation.id;
+        }
+
+        await showChat(existingConversationId, friend);
+      } catch (error) {
+        console.error(error);
+        alert(
+          "No se pudo abrir el chat. Comprueba las políticas de conversations y conversation_members, " +
+          "y que conversations permita crear filas sin campos obligatorios adicionales.\n\n" +
+          (error.message || "")
+        );
+      } finally {
+        $("connectionStatus").textContent = "Conectado";
+      }
+    }
+
+    async function openExistingConversation(conversationId) {
+      try {
+        const { data: members, error } = await supabaseClient
+          .from("conversation_members")
+          .select("user_id")
+          .eq("conversation_id", conversationId);
+
+        if (error) throw error;
+
+        const otherMember = (members || []).find((member) => member.user_id !== currentUser.id);
+
+        if (!otherMember) {
+          alert("No se encuentra el otro participante de esta conversación.");
+          return;
+        }
+
+        const friend = friendRecords.find((item) => item.id === otherMember.user_id) || {
+          id: otherMember.user_id,
+          username: "usuario",
+          display_name: "Conversación"
+        };
+
+        await showChat(conversationId, friend);
+      } catch (error) {
+        alert("No se pudo abrir la conversación: " + error.message);
+      }
+    }
+
+    async function showChat(conversationId, friend) {
+      currentPage = "chat";
+      currentConversationId = conversationId;
+      currentChatFriend = friend;
+      lastMessageIds = [];
+
+      stopMessageRefresh();
+
+      document.querySelectorAll("[data-page]").forEach((button) => {
+        button.classList.remove("active");
+      });
+
+      $("pageTitle").textContent = friend.display_name || friend.username || "Chat";
+      $("sidebar").classList.remove("mobile-open");
+
+      $("mainContent").innerHTML = `
+        <div class="chat-view">
+          <div id="messages" class="messages">
+            <div class="empty-state">Cargando mensajes…</div>
+          </div>
+          <form id="messageForm" class="message-composer">
+            <input id="messageInput" maxlength="5000" placeholder="Escribe un mensaje…" autocomplete="off" required>
+            <button class="primary" type="submit">Enviar</button>
+          </form>
+        </div>
+      `;
+
+      $("messageForm").addEventListener("submit", sendMessage);
+      await loadMessages();
+
+      messageRefreshTimer = setInterval(() => {
+        loadMessages().catch((error) => console.error("Error actualizando mensajes:", error));
+      }, 2500);
+    }
+
+    async function loadMessages() {
+      if (!currentConversationId || loadingMessages) return;
+      loadingMessages = true;
+
+      try {
+        const { data, error } = await supabaseClient
+          .from("messages")
+          .select("*")
+          .eq("conversation_id", currentConversationId)
+          .order("created_at", { ascending: true })
+          .limit(300);
+
+        if (error) throw error;
+
+        const messages = data || [];
+        const newIds = messages.map((message) => message.id).join(",");
+
+        if (newIds === lastMessageIds.join(",")) return;
+
+        const target = $("messages");
+        if (!target) return;
+
+        const wasNearBottom =
+          target.scrollHeight - target.scrollTop - target.clientHeight < 100;
+
+        target.innerHTML = messages.map((message) => {
+          const mine = message.sender_id === currentUser.id;
+          const body = message.content ?? message.body ?? message.message ?? "";
+
+          return `
+            <div class="message ${mine ? "mine" : ""}">
+              <div>${escapeHtml(body)}</div>
+              <div class="message-meta">
+                ${mine ? "Tú" : "Amigo"} · ${escapeHtml(formatDate(message.created_at))}
+              </div>
+            </div>
+          `;
+        }).join("");
+
+        if (!messages.length) {
+          target.innerHTML = `<div class="empty-state">Todavía no hay mensajes. ¡Saluda a tu amigo!</div>`;
+        }
+
+        if (wasNearBottom || lastMessageIds.length === 0) {
+          target.scrollTop = target.scrollHeight;
+        }
+
+        lastMessageIds = messages.map((message) => message.id);
+      } finally {
+        loadingMessages = false;
+      }
+    }
+
+    async function sendMessage(event) {
+      event.preventDefault();
+
+      const input = $("messageInput");
+      const button = $("messageForm").querySelector('button[type="submit"]');
+      const content = input.value.trim();
+
+      if (!content || !currentConversationId) return;
+
+      button.disabled = true;
+
+      try {
+        const { error } = await supabaseClient
+          .from("messages")
+          .insert({
+            conversation_id: currentConversationId,
+            sender_id: currentUser.id,
+            content: content
+          });
+
+        if (error) throw error;
+
+        input.value = "";
+        await loadMessages();
+        input.focus();
+      } catch (error) {
+        alert(
+          "No se pudo enviar el mensaje. Comprueba el nombre de la columna de texto en messages y sus políticas RLS.\n\n" +
+          (error.message || "")
+        );
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    function stopMessageRefresh() {
+      if (messageRefreshTimer) {
+        clearInterval(messageRefreshTimer);
+        messageRefreshTimer = null;
+      }
+    }
+
+    function stopRefreshTimers() {
+      stopMessageRefresh();
+
+      if (dataRefreshTimer) {
+        clearInterval(dataRefreshTimer);
+        dataRefreshTimer = null;
+      }
+    }
+
+    function startRefreshTimers() {
+      stopRefreshTimers();
+
+      dataRefreshTimer = setInterval(() => {
+        refreshAllData().catch((error) => console.error(error));
+      }, 15000);
+    }
+
+    // Comprueba la sesión actual y escucha cambios de autenticación.
+    async function initialize() {
+      const { data, error } = await supabaseClient.auth.getSession();
+
+      if (error) {
+        setNotice("authNotice", error.message, true);
+        return;
+      }
+
+      await handleAuthSession(data.session);
+
+      supabaseClient.auth.onAuthStateChange((event, session) => {
+        if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "TOKEN_REFRESHED") {
+          // Evita hacer operaciones Supabase complejas dentro del callback síncrono.
+          setTimeout(() => {
+            handleAuthSession(session).catch((error) => console.error(error));
+          }, 0);
+        }
+      });
+    }
+
+    initialize().catch((error) => {
+      console.error(error);
+      setNotice(
+        "authNotice",
+        "No se pudo iniciar la aplicación: " + (error.message || "error desconocido"),
+        true
+      );
+    });
+  </script>
 </body>
 </html>
